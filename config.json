@@ -3,7 +3,7 @@
     "db": {
       "type": "mysql",
       "username": "root",
-      "password": "",
+      "password": "mysql900606?",
       "host": "localhost",
       "port": 3306,
       "database": "nspider"
@@ -13,7 +13,7 @@
     "db": {
       "type": "mysql",
       "username": "root",
-      "password": "",
+      "password": "mysql900606?",
       "host": "localhost",
       "port": 3306,
       "database": "nspider"
@@ -23,7 +23,7 @@
     "db": {
       "type": "mysql",
       "username": "root",
-      "password": "",
+      "password": "mysql900606?",
       "host": "localhost",
       "port": 3306,
       "database": "nspider"

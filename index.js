@@ -1,4 +1,5 @@
 const log4js = require('log4js');
+const merge = require('merge');
 const Model = require('./model');
 const args = process.argv;
 const start_mudule = args.length >= 3 ? args[2] : 'all';
@@ -28,7 +29,7 @@ const modules = {
   task: require('./task')
 };
 
-Model.init(config);
+Model.init(start_mudule == 'all' ? Object.keys(modules): [start_mudule], config);
 
 if (start_mudule != 'all') {
   const _start_module = modules[start_mudule];
@@ -62,7 +63,7 @@ function _get_config_path() {
 
 function get_config() {
   const _custom_config_path = _get_config_path();
-  const _config = _custom_config_path ? require(_custom_config_path) : require('./config.json');
+  const _config = _custom_config_path ? merge(require('./config.json'),require(_custom_config_path)) : require('./config.json');
   return _config;
 }
 
