@@ -6,7 +6,10 @@
   "author": "zhuang.hu <zhuang.hu@wormpex.com>",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.5.3",
     "log4js": "^3.0.6",
+    "merge": "^1.2.1",
+    "mysql2": "^1.6.4",
     "request": "^2.88.0",
     "sequelize": "^4.42.0"
   }

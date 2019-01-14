@@ -1,6 +1,8 @@
 const log4js = require('log4js');
+const Model = require('./model');
 const args = process.argv;
 const start_mudule = args.length >= 3 ? args[2] : 'all';
+const config = get_config();
 
 const _log_options = {
   appenders: {
@@ -26,6 +28,7 @@ const modules = {
   task: require('./task')
 };
 
+Model.init(config);
 
 if (start_mudule != 'all') {
   const _start_module = modules[start_mudule];
@@ -64,7 +67,6 @@ function get_config() {
 }
 
 function _do_start_module(Module) {
-  const _config = get_config();
-  new Module(_config).start();
+  new Module(config).start();
 }
 

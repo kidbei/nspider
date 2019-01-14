@@ -1,14 +1,18 @@
 {
   "task": {
     "db": {
-      "type": "local",
-      "path": "/Users/kidbei/Downloads/task.sqlite"
+      "type": "mysql",
+      "username": "root",
+      "password": "",
+      "host": "localhost",
+      "port": 3306,
+      "database": "nspider"
     }
   },
   "project": {
     "db": {
       "type": "mysql",
-      "userName": "root",
+      "username": "root",
       "password": "",
       "host": "localhost",
       "port": 3306,
@@ -18,7 +22,7 @@
   "result": {
     "db": {
       "type": "mysql",
-      "userName": "root",
+      "username": "root",
       "password": "",
       "host": "localhost",
       "port": 3306,
