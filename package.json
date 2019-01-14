@@ -1,0 +1,13 @@
+{
+  "name": "nspider",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:kidbei/nspider.git",
+  "author": "zhuang.hu <zhuang.hu@wormpex.com>",
+  "license": "MIT",
+  "dependencies": {
+    "log4js": "^3.0.6",
+    "request": "^2.88.0",
+    "sequelize": "^4.42.0"
+  }
+}

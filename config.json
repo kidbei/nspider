@@ -1,0 +1,36 @@
+{
+  "task": {
+    "db": {
+      "type": "local",
+      "path": "/Users/kidbei/Downloads/task.sqlite"
+    }
+  },
+  "project": {
+    "db": {
+      "type": "mysql",
+      "userName": "root",
+      "password": "",
+      "host": "localhost",
+      "port": 3306,
+      "database": "nspider"
+    }
+  },
+  "result": {
+    "db": {
+      "type": "mysql",
+      "userName": "root",
+      "password": "",
+      "host": "localhost",
+      "port": 3306,
+      "database": "nspider"
+    }
+  },
+  "webui": {
+    "need-auth": true,
+    "username": "kidbei",
+    "password": "kidbei900606?"
+  },
+  "mq": {
+    "type": "local"
+  }
+}
