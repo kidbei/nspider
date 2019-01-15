@@ -36,5 +36,14 @@
   },
   "mq": {
     "type": "local"
+  },
+  "fetcher": {
+    "rpc_host": "127.0.0.1",
+    "rpc_port": 9980
+  },
+  "process": {
+    "fetcher_service": [
+      {"rpc_host": "127.0.0.1","rpc_port": 9980}
+    ]
   }
 }

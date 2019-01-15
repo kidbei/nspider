@@ -11,6 +11,10 @@ module.exports = {
     this._init_model_sequelize('result', config.result.db);
   },
   _get_db_key: function(db_config) {
+    if (db_config.type === 'sqlite') {
+      return db_config.type + db_config.storage;
+    }
+
     return db_config.type + db_config.host + db_config.username + db_config.password + 
        db_config.port + db_config.database;
   },
@@ -23,7 +27,20 @@ module.exports = {
       sequelize = db_key_instance[db_key];
     } else {
       logger.info('init db config:%s', JSON.stringify(db_config));
-      sequelize = new Sequelize(db_config.database, db_config.username, db_config.password, {
+      
+      const db_options = db_config.type === 'sqlite' ? {
+        operatorsAliases: false,
+        host: db_config.host,
+        dialect: db_config.type,
+        pool: {
+          max: 5,
+          min: 1,
+          acquire: 30000,
+          idle: 10000
+        },
+        storage: db_config.storage
+      } : {
+        operatorsAliases: false,
         host: db_config.host,
         dialect: db_config.type,
         pool: {
@@ -32,7 +49,8 @@ module.exports = {
           acquire: 30000,
           idle: 10000
         }
-      });
+      }
+      sequelize = new Sequelize(db_config.database, db_config.username, db_config.password, db_options);
       db_key_instance[db_key] = sequelize;
     }
     model_db_instance[model_name] = sequelize;

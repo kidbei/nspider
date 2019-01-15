@@ -1,0 +1,28 @@
+{
+  "task": {
+    "db": {
+      "type": "sqlite",
+      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
+    }
+  },
+  "project": {
+    "db": {
+      "type": "sqlite",
+      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
+    }
+  },
+  "result": {
+    "db": {
+      "type": "sqlite",
+      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
+    }
+  },
+  "webui": {
+    "need-auth": true,
+    "username": "kidbei",
+    "password": "kidbei900606?"
+  },
+  "mq": {
+    "type": "local"
+  }
+}

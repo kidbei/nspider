@@ -23,10 +23,9 @@ const logger = log4js.getLogger('nspider');
 
 const modules = {
   fetcher: require('./fetcher'),
-  processor: require('./processor'),
+  process: require('./process'),
   scheduler: require('./scheduler'),
   webui: require('./webui'),
-  task: require('./task')
 };
 
 Model.init(start_mudule == 'all' ? Object.keys(modules): [start_mudule], config);
@@ -68,6 +67,10 @@ function get_config() {
 }
 
 function _do_start_module(Module) {
-  new Module(config).start();
+  const module = new Module(config);
+  module.start().catch((error)=>{
+    logger.error('start module failed,%s', Module, error);
+    process.exit(2);
+  });
 }
 

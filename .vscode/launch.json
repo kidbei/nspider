@@ -8,7 +8,8 @@
       "type": "node",
       "request": "launch",
       "name": "启动程序",
-      "program": "${workspaceFolder}/index.js"
+      "program": "${workspaceFolder}/index.js",
+      "args": ["all", "-c", "/Users/kidbei/Ideaprojects/github/nspider/config_c.json"]
     }
   ]
 }
