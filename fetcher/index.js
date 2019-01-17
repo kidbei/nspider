@@ -1,18 +1,34 @@
 const logger = require('log4js').getLogger('fetcher');
 const Rpc = require('node-json-rpc');
 const Promise = require('bluebird');
+const HttpFetcher = require('./http_fetcher');
+const PhantomFetcher = require('./phantomjs_fetcher');
 
 module.exports = function(config) {
   this.serv = null;
+  this.fetchers = {};
 
   this.start = function () {
     console.log('start fetcher');
+    this.fetchers['html'] = new HttpFetcher();
+    this.fetchers['js'] = new PhantomFetcher();
     const rpc_config = config.fetcher || {};
     return this._start_rpc(rpc_config);
   }
 
-  this.destroy = () => {
+  this.destroy = async () => {
     logger.info('destroy fetcher');
+    await this.fetchers['html'].destroy();
+    await this.fetchers['js'].destroy();
+  }
+
+  this.fetch = (url, fetch_type, options) => {
+    const fetcher = this.fetchers[fetch_type];
+    if (!fetcher) {
+      logger.error('unknown fetch type:%s', fetch_type);
+      return Promise.reject(new Error('unknown fetch type:' + fetch_type));
+    }
+    return fetcher.fetch(url, options);
   }
 
   this._start_rpc = (rpc_config) => {
