@@ -4,6 +4,7 @@ const Model = require('./model');
 const args = process.argv;
 const start_mudule = args.length >= 3 ? args[2] : 'all';
 const config = get_config();
+const Mq = require('./mq');
 
 const _log_options = {
   appenders: {
@@ -28,7 +29,9 @@ const modules = {
   webui: require('./webui'),
 };
 
-Model.init(start_mudule == 'all' ? Object.keys(modules): [start_mudule], config);
+Model.init(config);
+
+Mq.init(config);
 
 if (start_mudule != 'all') {
   const _start_module = modules[start_mudule];
@@ -36,13 +39,13 @@ if (start_mudule != 'all') {
     console.error('module %s not found', start_mudule);
     process.exit();
   } else {
-    logger.debug('to start module:%s', start_mudule);
+    logger.info('to start module:%s', start_mudule);
     _do_start_module(_start_module);
   }
 } else {
   for (_module_name in modules) {
     const _module = modules[_module_name];
-    logger.debug('to start module:%s', _module_name);
+    logger.info('to start module:%s', _module_name);
     _do_start_module(_module);
   }
 }

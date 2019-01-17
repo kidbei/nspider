@@ -1,6 +1,7 @@
 const logger = require('log4js').getLogger('fetcher');
-const Rpc = require('node-json-rpc');
 const Promise = require('bluebird');
+const Mq = require('../mq');
+const utils = require('../utils');
 
 module.exports = function(config) {
 
@@ -8,7 +9,15 @@ module.exports = function(config) {
     return Promise.resolve();
   }
 
-  this.destroy = () => {
+
+  this.startProject = async (projectId, url) => {
+    await Mq.getMq().produce(utils.constant.TOPIC_PROCESS,{projectId: projectId, url: url});
   }
+
+
+  this.destroy = () => {
+    return Promise.resolve();
+  }
+
 
 }

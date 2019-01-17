@@ -4,7 +4,7 @@ const Sequelize = require('sequelize');
 
 
 module.exports = task = sequelize.define('task', {
-  id: {type: Sequelize.BIGINT, primaryKey: true, autoIncrement: true},
+  id: {type: Sequelize.STRING(32), primaryKey: true, allowNull: false},
   projectId: {type: Sequelize.BIGINT, allowNull: false},
   url: {type: Sequelize.STRING(200), allowNull: false},
   status: {type: Sequelize.STRING(10), allowNull: false},
