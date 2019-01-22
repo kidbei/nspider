@@ -34,9 +34,7 @@ module.exports = function() {
             if (logger.isDebugEnabled()) {
               logger.debug('fetch success,url:%s', url);
             }
-            const page_doc = this._html_2_document(body);
-            const nspider_response = {headers: response.headers, statusCode: response.statusCode};
-            nspider_response.doc = page_doc;
+            const nspider_response = {headers: response.headers, statusCode: response.statusCode, content: body};
             resolve(nspider_response);
           }
         }
@@ -49,9 +47,7 @@ module.exports = function() {
   }
 
 
-  this._html_2_document = (html) => {
-    return cheerio.load(html);
-  }
+  
 
 
 }

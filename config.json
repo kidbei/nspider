@@ -1,32 +1,20 @@
 {
   "task": {
     "db": {
-      "type": "mysql",
-      "username": "root",
-      "password": "mysql900606?",
-      "host": "localhost",
-      "port": 3306,
-      "database": "nspider"
+      "type": "sqlite",
+      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
     }
   },
   "project": {
     "db": {
-      "type": "mysql",
-      "username": "root",
-      "password": "mysql900606?",
-      "host": "localhost",
-      "port": 3306,
-      "database": "nspider"
+      "type": "sqlite",
+      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
     }
   },
   "result": {
     "db": {
-      "type": "mysql",
-      "username": "root",
-      "password": "mysql900606?",
-      "host": "localhost",
-      "port": 3306,
-      "database": "nspider"
+      "type": "sqlite",
+      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
     }
   },
   "webui": {
@@ -43,7 +31,10 @@
   },
   "process": {
     "fetcher_service": [
-      {"rpc_host": "127.0.0.1","rpc_port": 9980}
+      {
+        "rpc_host": "127.0.0.1",
+        "rpc_port": 9980
+      }
     ]
   },
   "scheduler": {
