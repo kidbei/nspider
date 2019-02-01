@@ -23,6 +23,7 @@ module.exports = function() {
       this.consumers[topic] = [];
     }
     this.consumers[topic].push(callback);
+    this.eventBus.on(topic, callback);
     return Promise.resolve();
   }
 

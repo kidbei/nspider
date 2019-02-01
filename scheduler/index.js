@@ -1,4 +1,4 @@
-const logger = require('log4js').getLogger('fetcher');
+const logger = require('log4js').getLogger('scheduler');
 const Promise = require('bluebird');
 const Mq = require('../mq');
 const utils = require('../utils');
@@ -18,10 +18,7 @@ module.exports = function(config) {
 
   this.onSchedule = (data) => {
     try{
-      logger.info('on schedule:%s', JSON.stringify(data));
-      if (!data.url) {
-        logger.error('invalid schedule data: no url,data:%s', JSON.stringify(data));
-      }
+      // logger.info('on schedule:%s', JSON.stringify(data));
       if (!data.projectId) {
         logger.error('invalid schedule data: no projectId,data:%s', JSON.stringify(data));
       }

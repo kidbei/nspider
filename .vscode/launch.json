@@ -10,6 +10,12 @@
       "name": "启动程序",
       "program": "${workspaceFolder}/index.js",
       "args": ["all", "-c", "/Users/kidbei/Ideaprojects/github/nspider/config_c.json"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "测试test_process.js",
+      "program": "${workspaceFolder}/test/test_process.js"
     }
   ]
 }

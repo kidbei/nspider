@@ -5,6 +5,7 @@ const utils = require('../utils');
 const Rpc = require('node-json-rpc');
 const vm = require('vm');
 const cheerio = require('cheerio');
+const merge = require('merge');
 
 
 module.exports = function(config) {
@@ -25,35 +26,77 @@ module.exports = function(config) {
   }
 
   this._on_process = async (result) => {
-    logger.info('process data:%s', JSON.stringify(result));
-    let project = this._project_cache[result.projectId];
-    if (!project) {
-      project = await this.ProjectModel.findById(result.projectId);
-      if (!project) {
-        return await Promise.reject(new Error('project not found:id=' + result.projectId));
-      } else {
-        this._init_and_cache_context(project);
-        this._project_cache[project.id] = project;
+    try{
+      if (result.error) {
+        logger.error('process fetcher got an error', result.error);
+        return;
       }
+      logger.info('process data,method:%s,project:%d', result.method, result.projectId);
+      let project = this._project_cache[result.projectId];
+      if (!project) {
+        project = await this.ProjectModel.findByPk(result.projectId);
+        if (!project) {
+          return await Promise.reject(new Error('project not found:id=' + result.projectId));
+        } else {
+          this._init_and_cache_context(project);
+          this._project_cache[project.id] = project;
+        }
+      }
+
+      let process_result;
+      if (result.method === 'start') {
+        process_result = project.context[result.method](result.url);
+      } else {
+        result.doc = cheerio.load(result.content);
+        process_result = project.context[result.method](result);
+      }
+      this._resolve_process_result(project.context, project.id, result.method, process_result);
+    } catch(error){
+      logger.error('process error, data:%s', JSON.stringify(result), error);
+      return Promise.reject(error);
     }
-    result.doc = cheerio.load(result.content);
-    project.context[result.method](result);
+  }
+
+
+
+  this._resolve_process_result = (context, projectId, method, result) => {
+    if (result && result.constructor.name === 'Promise') {
+      result.then((new_result) => {
+        this._resolve_process_result(context, projectId, method, new_result);
+      })
+      .catch((error) => {
+        logger.error('process error,project:%d, method:%s', projectId, method, error);
+      })
+      return;
+    }
+    
+    context['on_result'](result);
   }
 
 
   this._init_and_cache_context = (project) => {
     const contextObj = {
       _fetch: this.fetch,
-      _mq: Mq.getMq(),
+      _out: (message) => {
+        console.log(message);
+      },
+      on_result: (result) => {
+        logger.info('process result:%s', JSON.stringify(result, null, '\t'));
+      },
       _crawl: async (url, options) => {
-        const result = await this._fetch(url, options);
+        params = merge(options, {fetch_type: 'html'});
+        const result = await this._fetch(url, params);
+        if (result.error) {
+          logger.error('fetch error', result.error);
+          return;
+        }
         result.method = options.callback;
         result.projectId = project.id;
-        _mq.produce(utils.constant.TOPIC_SCHEDULE, result);
+        Mq.getMq().produce(utils.constant.TOPIC_SCHEDULE, result);
       }
     };
     const context = vm.createContext(contextObj);
-    const script = new vm.Script(data.project.script);
+    const script = new vm.Script(project.script);
     script.runInContext(context);
     project.context = context;
   }
@@ -67,15 +110,15 @@ module.exports = function(config) {
     return this._fetcher_clients[idx];
   }
 
-  this.fetch = async (url, options) => {
+  this._fetch = (url, options) => {
     const fetcher = this.select_fetcher_client();
     options.url = url;
     return new Promise((resolve, reject) => {
-      fetcher.call({'method':'fetch', 'params': options}, (error, result) =>{
+      fetcher.call({'jsonrpc': '2.0', 'method':'fetch', 'params': options, id: 1}, (error, result) =>{
             if (error) {
               reject(error);
             } else {
-              resolve(result);
+              resolve(result.result);
             }
         }
       )
