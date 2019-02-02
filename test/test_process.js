@@ -2,24 +2,24 @@ const Nspider = require('../');
 
 const text = `
   this.start = async (url) => {
-    this._crawl(url, {callback: 'index_page'});
+    this._crawl(url, {callback: 'index_page', fetch_type: 'js'});
+    return {_result: false}
   }
 
   this.index_page = async (result) => {
     const _this = this;
     result.doc('#projectNewsList').find('.news-item').each((i,el) => {
       const href = result.doc(el).find('.header a').attr('href');
-      const title = result.doc(el).find('.header a').text();
       _this._crawl(href, {callback: 'detail'})
     });
+    return {_result: false}
   }
 
   this.detail = (response) => {
     const title = response.doc('.article-detail').find('.header').text();
     const content = response.doc('.article-detail').find('#articleContent').html();
-    return {title: title};
+    return {_result:true, title: title};
   }
-
 `;
 
 const Utils = require('../utils');

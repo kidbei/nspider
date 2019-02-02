@@ -8,7 +8,6 @@ module.exports = task = sequelize.define('task', {
   projectId: {type: Sequelize.BIGINT, allowNull: false},
   url: {type: Sequelize.STRING(200), allowNull: false},
   status: {type: Sequelize.STRING(10), allowNull: false},
-  scheduleInterval: {type: Sequelize.BIGINT, allowNull: false, defaultValue: -1},
-  nextProcess: {type: Sequelize.STRING(200)},
-  track: {type: Sequelize.TEXT}
+  context: {type: Sequelize.TEXT, allowNull: false},
+  stack: {type: Sequelize.TEXT}
 })

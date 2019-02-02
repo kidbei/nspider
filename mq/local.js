@@ -12,7 +12,7 @@ module.exports = function() {
   }
 
   this.produce = (topic, data) => {
-    logger.debug('send mq data,topic:%s, data:%s', topic, data);
+    logger.debug('send mq data,topic:%s, data:%s', topic, JSON.stringify(data));
     this.eventBus.emit(topic, data);
     return Promise.resolve();
   }

@@ -38,6 +38,27 @@ module.exports = function () {
         await Model.init(this.config);
         await Mq.init(this.config);
         await this._start_modules();
+        
+        const exitHandler = async () => {
+            try{
+                for (name in this.module_instances) {
+                    try{
+                        let module = this.module_instances[name];
+                        await module.destroy();
+                    } catch(error){
+                        logger.error('destroy module %s error', name, error)
+                    }
+                }
+            } finally {
+                process.exit();
+            }
+        }
+
+        process.on('exit', exitHandler);
+        process.on('SIGINT', exitHandler);
+        process.on('SIGUSR1', exitHandler);
+        process.on('SIGUSR2', exitHandler);
+        process.on('uncaughtException', exitHandler);
     } 
     
 
