@@ -47,7 +47,8 @@ module.exports = function(config) {
       if (result.method === 'start') {
         process_result = project.context[result.method](result.url);
       } else {
-        result.doc = cheerio.load(result.content);
+        result.content = await this._fetch(result.url, result);
+        result.doc = this._html_2_document(result.content);
         process_result = project.context[result.method](result);
       }
       this._resolve_process_result(project.context, project.id, result.method, process_result);
@@ -84,15 +85,11 @@ module.exports = function(config) {
         logger.info('process result:%s', JSON.stringify(result, null, '\t'));
       },
       _crawl: async (url, options) => {
-        params = merge(options, {fetch_type: 'html'});
-        const result = await this._fetch(url, params);
-        if (result.error) {
-          logger.error('fetch error', result.error);
-          return;
-        }
-        result.method = options.callback;
-        result.projectId = project.id;
-        Mq.getMq().produce(utils.constant.TOPIC_SCHEDULE, result);
+        options.url = url;
+        options.fetch_type == options.fetch_type || 'html';
+        options.projectId = project.id;
+        options.method = options.callback;
+        Mq.getMq().produce(utils.constant.TOPIC_SCHEDULE, options);
       }
     };
     const context = vm.createContext(contextObj);

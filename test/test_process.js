@@ -7,7 +7,7 @@ const text = `
 
   this.index_page = async (result) => {
     const _this = this;
-    result.doc('#projectNewsList .news-item').each((i,el) => {
+    result.doc('#projectNewsList').find('.news-item').each((i,el) => {
       const href = result.doc(el).find('.header a').attr('href');
       const title = result.doc(el).find('.header a').text();
       _this._crawl(href, {callback: 'detail'})
