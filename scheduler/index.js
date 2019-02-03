@@ -42,7 +42,7 @@ module.exports = function(config) {
   }
 
 
-  this.destroy = () => {
+  this.destroy = async() => {
     return Promise.resolve();
   }
 

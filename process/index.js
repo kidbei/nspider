@@ -6,6 +6,7 @@ const Rpc = require('node-json-rpc');
 const vm = require('vm');
 const cheerio = require('cheerio');
 const md5Hex = require('md5-hex');
+const RateLimiter = require('limiter').RateLimiter;
 
 
 module.exports = function(config) {
@@ -14,12 +15,16 @@ module.exports = function(config) {
   this._project_cache = {};
   this.ProjectModel = null;
   this.TaskModel = null;
+  this.ResultModel = null;
   this.requestIdGenerator = 0;
+  this._project_limiter = {};
+  this._project_task_queue = {};
 
   this.start = async () => {
     try{
       this.ProjectModel = require('../model/Project');
       this.TaskModel = require('../model/Task');
+      this.ResultModel = require('../model/Result');
       await Mq.getMq().register(utils.constant.TOPIC_PROCESS, this._on_process);
       this._init_fetcher_clients();
       return await Promise.resolve();
@@ -46,29 +51,45 @@ module.exports = function(config) {
           return await Promise.reject(new Error('project not found:id=' + result.projectId));
         } else {
           this._init_and_cache_context(project);
+          this._init_limiter(project);
           this._project_cache[project.id] = project;
         }
       }
 
-      let process_result;
-      if (result.method === 'start') {
-        process_result = project.context[result.method](result.url);
-        await this.TaskModel.update({status: utils.constant.STATUS.TASK_DONE},{where: {id: taskId}}); 
-      } else {
-        response = await this._fetch(result.url, result);
-        if (!response.content) {
-          logger.warn('request has no body,url:%s', result.url);
-        } else {
-          result.doc = this._html_2_document(response.content);
-          result.text = response.content;
-          process_result = project.context[result.method](result);
-        }
+      const queue = this._project_task_queue[result.projectId];
+      if (!queue) {
+        this._project_task_queue[result.projectId] = [];
       }
-      this._resolve_process_result(project.context, taskId, project.id, result.method, process_result);
+      this._project_task_queue[result.projectId].push({project: project, result: result, taskId: taskId});
+      this._project_limiter[result.projectId].removeTokens(1, async () => {
+          const task = this._project_task_queue[result.projectId].pop();
+          this._run_project_task(task.project, task.result, task.taskId);
+      });
+      
+      
     } catch(error){
       await this.TaskModel.update({status: utils.constant.STATUS.TASK_ERROR, stack: error + ''},{where: {id: taskId}});
       logger.error('process error, data:%s', JSON.stringify(result), error);
     }
+  }
+
+
+  this._run_project_task = async (project, result, taskId) => {
+    let process_result;
+    if (result.method === 'start') {
+      process_result = project.context[result.method](result.url);
+      await this.TaskModel.update({status: utils.constant.STATUS.TASK_DONE},{where: {id: taskId}}); 
+    } else {
+      response = await this._fetch(result.url, result);
+      if (!response.content) {
+        logger.warn('request has no body,url:%s', result.url);
+      } else {
+        result.doc = this._html_2_document(response.content);
+        result.text = response.content;
+        process_result = project.context[result.method](result);
+      }
+    }
+    this._resolve_process_result(project.context, taskId, project.id, result.method, process_result);
   }
 
 
@@ -90,8 +111,10 @@ module.exports = function(config) {
       logger.error('invalid function return value:%s', result)
     } else {
       if (result['_result'] === true) {
+        result.taskId = taskId;
+        result.projectId = projectId;
         await _this.TaskModel.update({status: utils.constant.STATUS.TASK_DONE},{where: {id: taskId}});
-        context['on_result'](result);
+        await context['on_result'](result);
       }
     } 
   }
@@ -102,9 +125,10 @@ module.exports = function(config) {
       _out: (message) => {
         console.log(message);
       },
-      on_result: (result) => {
-        delete result['_result'];
+      on_result: async (result) => {
         logger.info('process result:%s', JSON.stringify(result, null, '\t'));
+        const db_result = result;
+        await this.ResultModel.create({projectId: project.id, taskId: result.taskId, result:JSON.stringify(result)});
       },
       _crawl: async (url, options) => {
         const runParams = {method: options.callback, url: url, projectId: project.id, 
@@ -116,6 +140,14 @@ module.exports = function(config) {
     const script = new vm.Script(project.script);
     script.runInContext(context);
     project.context = context;
+  }
+
+  this._init_limiter = (project) => {
+    const rate_number = project.rateNumber;
+    const rate_unit = project.rateUnit;
+    const limiter = new RateLimiter(rate_number, rate_unit);
+    logger.info('init project limiter,projectId:%s, %s,%s', project.id, rate_number, rate_unit);
+    this._project_limiter[project.id] = limiter;
   }
 
   this._html_2_document = (html) => {
@@ -160,10 +192,13 @@ module.exports = function(config) {
     }
   }
 
-  this.destroy = () => {
-    logger.info('destroy process');
+  this.destroy = async () => {
+    logger.info('destroy processor');
     this._project_cache = null;
     this._fetcher_clients = null;
+    this._project_limiter = null;
+    this._project_task_queue = null;
+    return Promise.resolve();
   }
 
 

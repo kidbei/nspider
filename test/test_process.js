@@ -28,7 +28,7 @@ const test = async () => {
   const nspider = new Nspider();
   await nspider.start();
   const Project = require('../model/Project');
-  await Project.create({name: 'test-project', script: text, status: Utils.constant.STATUS.PROJECT_DEV});
+  await Project.create({name: 'test-project', script: text, status: Utils.constant.STATUS.PROJECT_DEV, rateNumber:1, rateUnit: 'second'});
   const scheduler = nspider.getModule('scheduler');
   await scheduler.startProject(1, 'https://www.oschina.net/news/project');
 }

@@ -35,6 +35,7 @@ module.exports = function(config) {
     logger.info('destroy fetcher');
     await this.fetchers['html'].destroy();
     await this.fetchers['js'].destroy();
+    return Promise.resolve();
   }
 
   this.fetch = async (url, fetch_type, options) => {
