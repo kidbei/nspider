@@ -6,8 +6,7 @@ const Rpc = require('node-json-rpc');
 const vm = require('vm');
 const cheerio = require('cheerio');
 const md5Hex = require('md5-hex');
-const RateLimiter = require('limiter').RateLimiter;
-
+const iconv = require('iconv-lite');
 
 module.exports = function(config) {
 
@@ -17,8 +16,7 @@ module.exports = function(config) {
   this.TaskModel = null;
   this.ResultModel = null;
   this.requestIdGenerator = 0;
-  this._project_limiter = {};
-  this._project_task_queue = {};
+  this.stopedProjects = new Set();
 
   this.start = async () => {
     try{
@@ -26,11 +24,17 @@ module.exports = function(config) {
       this.TaskModel = require('../model/Task');
       this.ResultModel = require('../model/Result');
       await Mq.getMq().register(utils.constant.TOPIC_PROCESS, this._on_process);
+      await Mq.getMq().register(utils.constant.TOPIC_STOP_PROJECT, this._on_project_stop);
       this._init_fetcher_clients();
       return await Promise.resolve();
     } catch(error){
       return await Promise.reject(error);
     }
+  }
+
+  this._on_project_stop = async (data)=> {
+    logger.info('received stop project message:%s', JSON.stringify(data));
+    this.stopedProjects.push(data.projectId);
   }
 
   this._on_process = async (result) => {
@@ -40,8 +44,21 @@ module.exports = function(config) {
       result.fetch_type = result.fetch_type || 'html';
 
       if (result.method != 'start') {
-        await this.TaskModel.create({id: taskId, projectId: result.projectId, url: result.url, 
-          status: utils.constant.STATUS.TASK_RUNNING, context: JSON.stringify(result), track: ''});
+        if (this.stopedProjects.has(result.projectId)) {
+          logger.info('project %s is stoped, will not process message', result.projectId);
+          return;
+        }
+        const task_temp = await this.TaskModel.findByPk(taskId);
+        if (task_temp) {
+          logger.info('task is already exist, url:%s, taskId:%s', result.url, taskId);
+          return;
+        } else {
+          if (this.stopedProjects.has(result.projectId)) {
+            this.stopedProjects.delete(result.projectId);
+          }
+          await this.TaskModel.create({id: taskId, projectId: result.projectId, url: result.url, 
+            status: utils.constant.STATUS.TASK_RUNNING, context: JSON.stringify(result), track: ''});
+        }
       }
 
       let project = this._project_cache[result.projectId];
@@ -51,22 +68,11 @@ module.exports = function(config) {
           return await Promise.reject(new Error('project not found:id=' + result.projectId));
         } else {
           this._init_and_cache_context(project);
-          this._init_limiter(project);
           this._project_cache[project.id] = project;
         }
       }
 
-      const queue = this._project_task_queue[result.projectId];
-      if (!queue) {
-        this._project_task_queue[result.projectId] = [];
-      }
-      this._project_task_queue[result.projectId].push({project: project, result: result, taskId: taskId});
-      this._project_limiter[result.projectId].removeTokens(1, async () => {
-          const task = this._project_task_queue[result.projectId].pop();
-          this._run_project_task(task.project, task.result, task.taskId);
-      });
-      
-      
+      await this._run_project_task(project, result, taskId);
     } catch(error){
       await this.TaskModel.update({status: utils.constant.STATUS.TASK_ERROR, stack: error + ''},{where: {id: taskId}});
       logger.error('process error, data:%s', JSON.stringify(result), error);
@@ -84,6 +90,11 @@ module.exports = function(config) {
       if (!response.content) {
         logger.warn('request has no body,url:%s', result.url);
       } else {
+        if (result.charset) {
+          response.content = iconv.decode(new Buffer(response.content, 'base64'), result.charset);
+        } else {
+          response.content = new Buffer(response.content, 'base64').toString();
+        }
         result.doc = this._html_2_document(response.content);
         result.text = response.content;
         process_result = project.context[result.method](result);
@@ -97,7 +108,7 @@ module.exports = function(config) {
     const _this = this;
     if (result && result.constructor.name === 'Promise') {
       result.then((new_result) => {
-        this._resolve_process_result(context, taskId, projectId, method, new_result);
+        return this._resolve_process_result(context, taskId, projectId, method, new_result);
       })
       .catch(async (error) => {
         await _this.TaskModel.update({status: utils.constant.STATUS.TASK_ERROR, stack: error + ''},{where: {id: taskId}});
@@ -127,12 +138,12 @@ module.exports = function(config) {
       },
       on_result: async (result) => {
         logger.info('process result:%s', JSON.stringify(result, null, '\t'));
-        const db_result = result;
         await this.ResultModel.create({projectId: project.id, taskId: result.taskId, result:JSON.stringify(result)});
       },
       _crawl: async (url, options) => {
         const runParams = {method: options.callback, url: url, projectId: project.id, 
-          fetch_type: options.fetch_type || 'html',headers:options.headers || {}};
+          charset: options.charset,
+          fetch_type: options.fetch_type || 'html',headers:options.headers || {}, _inner_params: {project:project}};
         Mq.getMq().produce(utils.constant.TOPIC_SCHEDULE, runParams);
       }
     };
@@ -159,7 +170,7 @@ module.exports = function(config) {
     return this._fetcher_clients[idx];
   }
 
-  this._fetch = (url, options) => {
+  this._fetch = async (url, options) => {
     const fetcher = this.select_fetcher_client();
     options.url = url;
     const requestId = this.requestIdGenerator += 1 ;

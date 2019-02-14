@@ -8,6 +8,8 @@
   "dependencies": {
     "bluebird": "^3.5.3",
     "cheerio": "^1.0.0-rc.2",
+    "fastify": "^1.14.1",
+    "iconv-lite": "^0.4.24",
     "limiter": "^1.1.4",
     "log4js": "^3.0.6",
     "md5-hex": "^2.0.0",

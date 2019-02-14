@@ -9,5 +9,7 @@ module.exports = sequelize.define('project', {
   script: {type: Sequelize.TEXT, allowNull: false},
   status: {type: Sequelize.STRING(10), allowNull: false},
   rateNumber: {type: Sequelize.INTEGER, allowNull: false, defaultValue: 1},
-  rateUnit: {type: Sequelize.STRING(10), allowNull: false, defaultValue: 'second'}
+  rateUnit: {type: Sequelize.STRING(10), allowNull: false, defaultValue: 'second'},
+  startUrl: {type: Sequelize.STRING(500), allowNull: false},
+  againAfter: {type: Sequelize.BIGINT, allowNull: false, defaultValue: 0}
 })

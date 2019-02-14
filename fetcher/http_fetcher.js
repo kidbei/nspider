@@ -5,9 +5,10 @@ const Promise = require('bluebird');
 const logger = require('log4js').getLogger('fetcher');
 
 
+
 const default_http_options = {
   headers: {
-    'User-Agent': 'nspider fetcher'
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
   }
 };
 
@@ -20,13 +21,12 @@ module.exports = function() {
     if (logger.isDebugEnabled()) {
       logger.debug('fetch url:%s', url);
     }
-    const real_options = merge(default_http_options, options);
-    real_options.url = url;
+    const headers = merge(default_http_options.headers, options.headers);
     return new Promise((resolve, reject) => {
-      request(real_options, (error, response, body) => {
+      request({url: url, headers: headers, encoding: null}, (error, response, body) => {
         if (error) {
           reject(error);
-        } else {
+        } else {                                                                                                         
           if (response.statusCode >= 400) {
             logger.error('fetc url faild,url:%s,reason:http server return code:%d', url, response.statusCode);
             reject(new Error('http code error:' + response.statusCode));
@@ -34,7 +34,7 @@ module.exports = function() {
             if (logger.isDebugEnabled()) {
               logger.debug('fetch success,url:%s', url);
             }
-            const nspider_response = {headers: response.headers, statusCode: response.statusCode, content: body};
+            const nspider_response = {headers: response.headers, statusCode: response.statusCode, content: body.toString('base64')};
             resolve(nspider_response);
           }
         }

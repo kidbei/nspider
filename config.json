@@ -19,8 +19,14 @@
   },
   "webui": {
     "need-auth": true,
-    "username": "kidbei",
-    "password": "kidbei900606?"
+    "accounts": [
+      {
+        "username": "kidbei",
+        "password": "kidbei900606?"
+      }
+    ],
+    "host": "0.0.0.0",
+    "port": 8090
   },
   "mq": {
     "type": "local"

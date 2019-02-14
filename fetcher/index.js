@@ -18,7 +18,7 @@ module.exports = function(config) {
       this.serv.addMethod('fetch', async (param, callback) => {
         try{
           const fetcher = this.fetchers[param.fetch_type];
-          const result = await fetcher.fetch(param.url, param.options);
+          const result = await fetcher.fetch(param.url, param);
           callback(undefined, result);
         } catch(error){
           callback(error, undefined);

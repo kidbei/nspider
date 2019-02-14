@@ -25,12 +25,13 @@ const text = `
 const Utils = require('../utils');
 
 const test = async () => {
+  const startUrl = 'https://www.oschina.net/news/project';
   const nspider = new Nspider();
   await nspider.start();
   const Project = require('../model/Project');
-  await Project.create({name: 'test-project', script: text, status: Utils.constant.STATUS.PROJECT_DEV, rateNumber:1, rateUnit: 'second'});
+  await Project.create({name: 'test-project', script: text, status: Utils.constant.STATUS.PROJECT_DEV, rateNumber:30, rateUnit: 'minute', startUrl: startUrl});
   const scheduler = nspider.getModule('scheduler');
-  await scheduler.startProject(1, 'https://www.oschina.net/news/project');
+  await scheduler.startProject(1, startUrl);
 }
 
 setTimeout(() => {
