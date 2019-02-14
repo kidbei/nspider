@@ -9,5 +9,6 @@ module.exports = task = sequelize.define('task', {
   url: {type: Sequelize.STRING(200), allowNull: false},
   status: {type: Sequelize.STRING(10), allowNull: false},
   context: {type: Sequelize.TEXT, allowNull: false},
-  stack: {type: Sequelize.TEXT}
+  stack: {type: Sequelize.TEXT},
+  expireTime: {type: Sequelize.BIGINT, allowNull: false, defaultValue: 0}
 })

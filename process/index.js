@@ -50,13 +50,20 @@ module.exports = function(config) {
         }
         const task_temp = await this.TaskModel.findByPk(taskId);
         if (task_temp) {
-          logger.info('task is already exist, url:%s, taskId:%s', result.url, taskId);
-          return;
+          if (task_temp.expireTime === 0 || task_temp.createdAt.getTime() + task_temp.expireTime > Date.now()) {
+            logger.info('task is already exist, url:%s, taskId:%s', result.url, taskId);
+            return;
+          } else {
+            logger.info('task is out of expire time, url:%s, taskId:%s', result.url, taskId);
+            this.TaskModel.destroy({where: {id: taskId}});
+            this.ResultModel.destroy({where: {taskId: taskId}});
+          }
         } else {
           if (this.stopedProjects.has(result.projectId)) {
             this.stopedProjects.delete(result.projectId);
           }
           await this.TaskModel.create({id: taskId, projectId: result.projectId, url: result.url, 
+            expireTime: result.expireTime || 0,
             status: utils.constant.STATUS.TASK_RUNNING, context: JSON.stringify(result), track: ''});
         }
       }
@@ -142,7 +149,7 @@ module.exports = function(config) {
       },
       _crawl: async (url, options) => {
         const runParams = {method: options.callback, url: url, projectId: project.id, 
-          charset: options.charset, proxy: options.proxy || undefined,
+          charset: options.charset, proxy: options.proxy || undefined, expireTime: options.expireTime,
           fetch_type: options.fetch_type || 'html',headers:options.headers || {}, _inner_params: {project:project}};
         Mq.getMq().produce(utils.constant.TOPIC_SCHEDULE, runParams);
       }
