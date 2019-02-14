@@ -9,6 +9,7 @@ module.exports = {
     this._init_model_sequelize('task', config.task.db);
     this._init_model_sequelize('project', config.project.db);
     this._init_model_sequelize('result', config.result.db);
+    this._init_model_sequelize('module', config.system.db);
   },
   _get_db_key: function(db_config) {
     if (db_config.type === 'sqlite') {

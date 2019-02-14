@@ -1,4 +1,10 @@
 {
+  "system": {
+    "db": {
+      "type": "sqlite",
+      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
+    }
+  },
   "task": {
     "db": {
       "type": "sqlite",

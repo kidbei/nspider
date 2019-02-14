@@ -4,6 +4,7 @@ const Model = require('./model');
 const args = process.argv;
 const start_mudule = args.length >= 3 ? args[2] : 'all';
 const Mq = require('./mq');
+const utils = require('./utils');
 
 const _log_options = {
     appenders: {
@@ -32,17 +33,32 @@ module.exports = function () {
     
     this.module_instances = {};
     this.config = {};
+    this.ModuleModel = null;
+    this.module_heartbeat_timer;
+    this.localIp = utils.getLocalIp();
 
     this.start = async () => {
         this.config = this._getConfig();
         await Model.init(this.config);
         await Mq.init(this.config);
+        this.ModuleModel = require('./model/Module');
         await this._start_modules();
         
+        this.module_heartbeat_timer = setInterval(async () => {
+            const moduleNames = Object.keys(this.module_instances);
+            const now = new Date();
+            for (let i = 0; i < moduleNames.length; i ++) {
+                const moduleName = moduleNames[i];
+                logger.info('heartbeat for module: %s', moduleName);
+                await this.ModuleModel.update({updatedAt: now},{where: {name: moduleName, ip: this.localIp}});
+            }
+        }, 1000 * 60);
+
         const exitHandler = async () => {
             try{
                 for (name in this.module_instances) {
                     try{
+                        clearInterval(this.module_heartbeat_timer);
                         let module = this.module_instances[name];
                         await module.destroy();
                     } catch(error){
@@ -92,7 +108,7 @@ module.exports = function () {
               process.exit();
             } else {
               logger.info('to start module:%s', start_mudule);
-              await this._do_start_module(_module_name, _start_module);
+              await this._do_start_module(start_mudule, _start_module);
             }
           } else {
             for (_module_name in modules) {
@@ -107,6 +123,12 @@ module.exports = function () {
     this._do_start_module = async (ModuleName, Module) => {
         const module = new Module(this.config);
         await  module.start();
+        const db_module = await this.ModuleModel.findOne({where: {name: ModuleName, ip: utils.getLocalIp()}});
+        if (db_module) {
+
+        } else {
+            await this.ModuleModel.create({name: ModuleName, ip: utils.getLocalIp(), hostName: utils.getLocalHostName()});
+        }
         this.module_instances[ModuleName] = module;
     }
 }

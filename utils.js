@@ -1,3 +1,6 @@
+const hostname = require('hostname');
+const internalIp = require('internal-ip');
+
 module.exports = {
   constant: {
     TOPIC_PROCESS: 'process',
@@ -10,5 +13,14 @@ module.exports = {
       TASK_ERROR: 'error',
       TASK_DONE: 'done'
     }
+  },
+
+
+  getLocalIp: () => {
+    return internalIp.v4.sync();
+  },
+
+  getLocalHostName: () => {
+    return hostname();
   }
 }

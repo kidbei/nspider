@@ -9,6 +9,7 @@ module.exports = {
         require('./Task').sync({force: true}),
         require('./Project').sync({force: true}),
         require('./Result').sync({force: true}),
+        require('./Module').sync({force: true}),
       ])
   }
 }
