@@ -2,7 +2,7 @@ const Nspider = require('../');
 
 const text = `
   this.start = async (url) => {
-    this._crawl(url, {callback: 'index_page', fetch_type: 'html',charset:'GBK',proxy:'http://127.0.0.1:1087'});
+    this._crawl(url, {callback: 'index_page', fetch_type: 'html',charset:'GBK'});
     return {_result: false}
   }
 
@@ -10,11 +10,11 @@ const text = `
     const _this = this;
     result.doc('.p_in').find('li a').each((i, el) => {
       const url = result.doc(el).attr('href');
-      _this._crawl(url, {callback: 'index_page', fetch_type: 'html',charset:'GBK',proxy:'http://127.0.0.1:1087'});
+      _this._crawl(url, {callback: 'index_page', fetch_type: 'html',charset:'GBK'});
     });
     result.doc('#resultList').find('.t2').each((i,el) => {
       const href = result.doc(el).find('a').attr('href');
-      _this._crawl(href, {callback: 'detail',charset:'GBK',proxy:'http://127.0.0.1:1087'})
+      _this._crawl(href, {callback: 'detail',charset:'GBK'})
     });
     return {_result: false}
   }

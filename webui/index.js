@@ -2,9 +2,10 @@ const logger = require('log4js').getLogger('webui');
 const Rpc = require('node-json-rpc');
 const Promise = require('bluebird');
 const merge = require('merge');
+const path = require('path');
 const fastify = require('fastify')({
   logger: true
-})
+});
 
 
 module.exports = function(config) {
@@ -19,6 +20,10 @@ module.exports = function(config) {
   this.start = async () => {
     const webui_config = merge(this.default_opts, config['webui']);
     if (webui_config['need-auth'] === true) {
+      fastify.register(require('fastify-static'), {
+        root: path.join(__dirname, 'static'),
+        prefix: '/static/', // optional: default '/'
+      });
       await fastify.listen(webui_config.port, webui_config.host);
       logger.info('start webui server %s:%d', webui_config.host, webui_config.port);
     }
@@ -47,3 +52,4 @@ module.exports = function(config) {
   }
 
 }
+
