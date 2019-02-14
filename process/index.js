@@ -121,10 +121,10 @@ module.exports = function(config) {
       await _this.TaskModel.update({status: utils.constant.STATUS.TASK_ERROR, stack: 'invalid function return value:' + result},{where: {id: taskId}});
       logger.error('invalid function return value:%s', result)
     } else {
+      await _this.TaskModel.update({status: utils.constant.STATUS.TASK_DONE},{where: {id: taskId}});
       if (result['_result'] === true) {
         result.taskId = taskId;
         result.projectId = projectId;
-        await _this.TaskModel.update({status: utils.constant.STATUS.TASK_DONE},{where: {id: taskId}});
         await context['on_result'](result);
       }
     } 
@@ -142,7 +142,7 @@ module.exports = function(config) {
       },
       _crawl: async (url, options) => {
         const runParams = {method: options.callback, url: url, projectId: project.id, 
-          charset: options.charset,
+          charset: options.charset, proxy: options.proxy || undefined,
           fetch_type: options.fetch_type || 'html',headers:options.headers || {}, _inner_params: {project:project}};
         Mq.getMq().produce(utils.constant.TOPIC_SCHEDULE, runParams);
       }
@@ -178,6 +178,8 @@ module.exports = function(config) {
       fetcher.call({'jsonrpc': '2.0', 'method':'fetch', 'params': options, id: requestId}, (error, result) =>{
             if (error) {
               reject(error);
+            } else if (result.error) {
+              reject(result.error);
             } else {
               resolve(result.result);
             }

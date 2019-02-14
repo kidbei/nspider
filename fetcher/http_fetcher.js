@@ -23,7 +23,11 @@ module.exports = function() {
     }
     const headers = merge(default_http_options.headers, options.headers);
     return new Promise((resolve, reject) => {
-      request({url: url, headers: headers, encoding: null}, (error, response, body) => {
+      const request_options = {url: url, headers: headers, encoding: null};
+      if (options.proxy) {
+        request_options.proxy = options.proxy;
+      }
+      request(request_options, (error, response, body) => {
         if (error) {
           reject(error);
         } else {                                                                                                         
