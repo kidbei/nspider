@@ -23,6 +23,12 @@
       "request": "launch",
       "name": "测试test_zhaopin.js",
       "program": "${workspaceFolder}/test/test_zhaopin.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "测试test_webui.js",
+      "program": "${workspaceFolder}/test/test_webui.js"
     }
   ]
 }

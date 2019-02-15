@@ -10,6 +10,7 @@ module.exports = {
         require('./Project').sync({force: true}),
         require('./Result').sync({force: true}),
         require('./Module').sync({force: true}),
+        require('./AuthRecord').sync({force: true}),
       ])
   }
 }
