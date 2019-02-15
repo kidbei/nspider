@@ -4,6 +4,7 @@ const Promise = require('bluebird');
 const merge = require('merge');
 const path = require('path');
 const uuidv4 = require('uuid/v4');
+const serveStatic = require('serve-static')
 const fastify = require('fastify')({
   logger: true
 });
@@ -27,17 +28,10 @@ module.exports = function(config) {
   this.start = async () => {
     const webui_config = merge(this.default_opts, config['webui']);
     if (webui_config['need-auth'] === true) {
-      fastify.register(require('fastify-static'), {
-        root: path.join(__dirname, 'static'),
-        prefix: '/static/', // optional: default '/'
-      });
-      fastify.setErrorHandler((error, request, reply) => {
-        logger.error('webui server got an error', error);
-        reply.send({ret: false, code: -1024, msg: error.toString()});
-      });
+      
       await this._init_api();
       await fastify.listen(webui_config.port, webui_config.host);
-      logger.info('start webui server %s:%d', webui_config.host, webui_config.port);
+      logger.info('start webui server http://%s:%d', webui_config.host, webui_config.port);
     }
     this._init_account(webui_config);
 
@@ -48,7 +42,14 @@ module.exports = function(config) {
 
   this._init_api = async () => {
 
-    fastify.use(async (request,response,next) => {
+    fastify.setErrorHandler((error, request, reply) => {
+      logger.error('webui server got an error', error);
+      reply.send({ret: false, code: -1024, msg: error.toString()});
+    });
+
+    fastify.use('/static', serveStatic(path.join(__dirname, 'static')));
+
+    fastify.use('/api/*', async (request,response,next) => {
       if (safe_urls.has(request.url)) {
         next();
         return;
@@ -59,16 +60,19 @@ module.exports = function(config) {
       }
       const authRecord = await this.AuthRecordModel.findOne({where: {token: token}});
       if (!authRecord) {
+        response.statusCode = 401;
         logger.warn('invalid token:%s', token);
         next(new Error('invalid token'));
         return;
       }
 
       if (authRecord.updatedAt.getTime() + 1000 * 60 * 60 * 24 * 7 < Date.now()) {
+        response.statusCode = 401;
         next(new Error('token is out of expire time'));
         return;
       }
 
+      request.user = authRecord.userName;
       next();
     })
 
@@ -125,3 +129,4 @@ module.exports = function(config) {
 
 }
 
+console.log(path.join(__dirname, 'static'));
