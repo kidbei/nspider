@@ -6,12 +6,127 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>nspider dashboard</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.13.4/dist/bootstrap-table.min.css">
+
 </head>
-<body>
+<body >
+    <div class="container-fluid" id="app">
+        <div class="row">
+            <div class="col-3" v-for="(value, key) in moduleInfoList" :key="key">
+                <div class="card" style="width: 18rem;">
+                    <div class="card-header">
+                        {{key}}
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" v-for="module in value">{{module.ip}}-{{module.hostName}}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="row">
+            <div class="col-12">
+                <h3>项目列表</h3>
+            </div>
+            <div class="col-12">
+                <table data-toggle="table" id="project-table">
+                    <thead>
+                        <tr>
+                        <th>id</th>
+                        <th>名称</th>
+                        <th>状态</th>
+                        <th>频率</th>
+                        <th>重复</th>
+                        <th>结果数</th>
+                        <th>执行中</th>
+                        <th>失败</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-sortable="true" data-field="id"></td>
+                            <td data-field="name"></td>
+                            <td data-field="status"></td>
+                            <td data-field="rate"></td>
+                            <td data-field="again"></td>
+                            <td data-field="resultCount"></td>
+                            <td data-field="runningCount"></td>
+                            <td data-field="errorCount"></td>
+                            <td data-field="createdAt"></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+
     <script src="/static/js/jquery-3.3.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     <script src="/static/js/jquery.cookie.js"></script>
     <script src="/static/js/nspider.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.13.4/dist/bootstrap-table.min.js"></script>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                moduleInfoList: [],
+                projectList: [],
+            },
+            methods: {
+                getModules: function() {
+                    var _this = this;
+                    nspider.getModuleList(function(error, result) {
+                        if (error) {
+                            alert('get module list error' + error.toString());
+                        } else {
+                            var moduleInfoList = {};
+                            for (var i = 0; i < result.data.length; i ++) {
+                                var module = result.data[i];
+                                if (!moduleInfoList[module.name]) {
+                                    moduleInfoList[module.name] = [];
+                                }
+                                moduleInfoList[module.name].push(module);
+                            }
+                            _this.moduleInfoList = moduleInfoList;
+                        }
+                    })
+                },
+
+                getProjects: function(callback) {
+                    var _this = this;
+                    nspider.getProjectList(function(error, result) {
+                        if (error) {
+                            alert('get project list error' + error.toString());
+                        } else {
+                            for (var i = 0; i < result.data.length; i ++) {
+                                var project = result.data[i];
+                                project.rate = project.rateNumber + '/' + project.rateUnit;
+                                project.again = (project.againAfter > 0);
+                            }
+                            _this.projectList = result.data;
+                            if (callback) {
+                                callback();
+                            }
+                        }
+                    })
+                }
+            },
+            created: function() {
+                var _this = this;
+                this.getModules();
+                this.getProjects();
+            }
+        })
+    </script>
 </body>
 </html>

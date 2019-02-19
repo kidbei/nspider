@@ -5,6 +5,7 @@ const merge = require('merge');
 const path = require('path');
 const uuidv4 = require('uuid/v4');
 const serveStatic = require('serve-static')
+const utils = require('../utils');
 const fastify = require('fastify')({
   logger: true
 });
@@ -24,6 +25,9 @@ module.exports = function(config) {
 
   this.ModuleModel = null;
   this.AuthRecordModel = null;
+  this.ProjectModel = null;
+  this.TaskModel = null;
+  this.ResultModel = null;
 
   this.start = async () => {
     const webui_config = merge(this.default_opts, config['webui']);
@@ -37,6 +41,9 @@ module.exports = function(config) {
 
     this.ModuleModel = require('../model/Module');
     this.AuthRecordModel = require('../model/AuthRecord');
+    this.ProjectModel = require('../model/Project');
+    this.TaskModel = require('../model/Task');
+    this.ResultModel = require('../model/Result');
   }
 
 
@@ -49,32 +56,32 @@ module.exports = function(config) {
 
     fastify.use('/static', serveStatic(path.join(__dirname, 'static')));
 
-    fastify.use('/api/*', async (request,response,next) => {
-      if (safe_urls.has(request.url)) {
-        next();
-        return;
-      }
-      const token = request.headers['token'];
-      if (logger.isDebugEnabled()) {
-        logger.debug('check api token:%s', token);
-      }
-      const authRecord = await this.AuthRecordModel.findOne({where: {token: token}});
-      if (!authRecord) {
-        response.statusCode = 401;
-        logger.warn('invalid token:%s', token);
-        next(new Error('invalid token'));
-        return;
-      }
+    // fastify.use('/api', async (request,response,next) => {
+    //   if (safe_urls.has(request.url)) {
+    //     next();
+    //     return;
+    //   }
+    //   const token = request.headers['token'];
+    //   if (logger.isDebugEnabled()) {
+    //     logger.debug('check api token:%s', token);
+    //   }
+    //   const authRecord = await this.AuthRecordModel.findOne({where: {token: token}});
+    //   if (!authRecord) {
+    //     response.statusCode = 401;
+    //     logger.warn('invalid token:%s', token);
+    //     next(new Error('invalid token'));
+    //     return;
+    //   }
 
-      if (authRecord.updatedAt.getTime() + 1000 * 60 * 60 * 24 * 7 < Date.now()) {
-        response.statusCode = 401;
-        next(new Error('token is out of expire time'));
-        return;
-      }
+    //   if (authRecord.updatedAt.getTime() + 1000 * 60 * 60 * 24 * 7 < Date.now()) {
+    //     response.statusCode = 401;
+    //     next(new Error('token is out of expire time'));
+    //     return;
+    //   }
 
-      request.user = authRecord.userName;
-      next();
-    })
+    //   request.user = authRecord.userName;
+    //   next();
+    // })
 
     fastify.get('/api/modules', async (request, reply) => {
       const modules = await this.ModuleModel.findAll();
@@ -103,6 +110,27 @@ module.exports = function(config) {
       logger.info('user %s has been login successed', userName);
       reply.send({ret: true, code: 0, data: {token: token}});
     });
+
+    fastify.get('/api/projects', async (request, reply) => {
+      const projects = await this.ProjectModel.findAll();
+      for (let i = 0; i < projects.length; i ++) {
+        const runningCount = await this.TaskModel.count({where: {projectId: projects[i].id, status: utils.constant.STATUS.TASK_RUNNING}});
+        const errorCount = await this.TaskModel.count({where: {projectId: projects[i].id, status: utils.constant.STATUS.TASK_ERROR}});
+        const resultCount = await this.TaskModel.count({where: {projectId: projects[i].id}});
+        projects[i].runningCount = runningCount;
+        projects[i].errorCount = errorCount;
+        projects[i].resultCount = resultCount;
+      }
+      reply.send({ret: true, code: 0, data: projects || []});
+    });
+
+
+    fastify.get('/api/projects/:projectId', async (request, reply) => {
+      const projectId = request.params.projectId;
+      const project = await this.ProjectModel.findByPk(projectId);
+      reply.send({ret: true, code: 0, data: project});
+    });
+
 
   }
 

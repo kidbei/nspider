@@ -28,6 +28,47 @@ window.nspider = {
         }
     },
 
+    getModuleList: function(callback) {
+        $.ajax({
+            type: 'GET',
+            url: '/api/modules',
+            dataType: 'json',
+            contentType: 'application/json',
+            headers: {token: $.cookie('token')},
+            success: function(result) {
+                if (result.ret === false) {
+                    callback(new Error(result.msg));
+                } else {
+                    callback(undefined, result);
+                }
+            },
+            error: function(error) {
+                callback(error);
+            }
+        });
+    },
+
+
+    getProjectList: function(callback) {
+        $.ajax({
+            type: 'GET',
+            url: '/api/projects',
+            dataType: 'json',
+            contentType: 'application/json',
+            headers: {token: $.cookie('token')},
+            success: function(result) {
+                if (result.ret === false) {
+                    callback(new Error(result.msg));
+                } else {
+                    callback(undefined, result);
+                }
+            },
+            error: function(error) {
+                callback(error);
+            }
+        });
+    },
+
     _check_token_error: function(result) {
         
     }
