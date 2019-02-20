@@ -6,7 +6,6 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>nspider dashboard</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.13.4/dist/bootstrap-table.min.css">
 
 </head>
 <body >
@@ -31,7 +30,7 @@
                 <h3>项目列表</h3>
             </div>
             <div class="col-12">
-                <table data-toggle="table" id="project-table">
+                <table id="project-table" width="100%" style="text-align:center;" border="1" cellspacing="0">
                     <thead>
                         <tr>
                         <th>id</th>
@@ -47,16 +46,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td data-sortable="true" data-field="id"></td>
-                            <td data-field="name"></td>
-                            <td data-field="status"></td>
-                            <td data-field="rate"></td>
-                            <td data-field="again"></td>
-                            <td data-field="resultCount"></td>
-                            <td data-field="runningCount"></td>
-                            <td data-field="errorCount"></td>
-                            <td data-field="createdAt"></td>
+                        <tr v-for="project in projectList">
+                            <td>{{project.id}}</td>
+                            <td>{{project.name}}</td>
+                            <td>{{project.status}}</td>
+                            <td>{{project.rate}}</td>
+                            <td>{{project.again}}</td>
+                            <td>{{project.resultCount}}</td>
+                            <td>{{project.runningCount}}</td>
+                            <td>{{project.errorCount}}</td>
+                            <td>{{project.createdAt}}</td>
                             <td></td>
                         </tr>
                     </tbody>
@@ -73,7 +72,6 @@
     <script src="/static/js/jquery.cookie.js"></script>
     <script src="/static/js/nspider.js"></script>
     <script src="https://unpkg.com/vue"></script>
-    <script src="https://unpkg.com/bootstrap-table@1.13.4/dist/bootstrap-table.min.js"></script>
 
     <script>
         new Vue({

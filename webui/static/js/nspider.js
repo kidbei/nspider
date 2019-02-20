@@ -69,6 +69,41 @@ window.nspider = {
         });
     },
 
+    getProject: function(projectId, callback) {
+        $.ajax({
+            type: 'GET',
+            url: '/api/projects/' + projectId,
+            dataType: 'json',
+            contentType: 'application/json',
+            headers: {token: $.cookie('token')},
+            success: function(result) {
+                if (result.ret === false) {
+                    callback(new Error(result.msg));
+                } else {
+                    callback(undefined, result);
+                }
+            },
+            error: function(error) {
+                callback(error);
+            }
+        });
+    },
+
+    //http://localhost:8080?a=a1&b=b1
+    getParams: function(url) {
+        if (url.indexOf('?') < 0) {
+            return {};
+        }
+        var result = {};
+        var paramString = url.substring(url.indexOf('?') + 1, url.length);
+        var pairs = paramString.split('&');
+        for (var i = 0; i < pairs.length; i ++) {
+            var p = pairs[i].split('=');
+            result[p[0]] = p[1];
+        }
+        return result;
+    },
+
     _check_token_error: function(result) {
         
     }

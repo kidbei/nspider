@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>nspider dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link href="/static/codemirror/css/codemirror.css" rel="stylesheet" type="text/css">
+    <link href="/static/codemirror/css/monokai.css" rel="stylesheet" type="text/css">
+    <style>
+        
+    </style>
+</head>
+<body >
+
+    <div class="container-fluid" id="app">
+        <br>
+        <div class="row">
+            <div class="col-4"></div>
+            <div class="col-8">
+                <button class="btn btn-info">提交</button>
+                <button class="btn btn-info" @click="run">运行</button>
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-4" id="debug-container"></div>
+            <div class="col-8" id="code-container">
+                <textarea id="code"></textarea>
+            </div>
+        </div>    
+    </div>
+
+
+    <script src="/static/js/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="/static/js/jquery.cookie.js"></script>
+    <script src="/static/js/nspider.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <!-- 引入CodeMirror核心文件 -->
+    <script type="text/javascript" src="/static/codemirror/js/codemirror.js"></script>
+
+    <!-- CodeMirror支持不同语言，根据需要引入JS文件 -->
+    <!-- 因为HTML混合语言依赖Javascript、XML、CSS语言支持，所以都要引入 -->
+    <script type="text/javascript" src="/static/codemirror/mode/javascript/javascript.js"></script>
+    <script type="text/javascript" src="/static/codemirror/mode/xml/xml.js"></script>
+    <script type="text/javascript" src="/static/codemirror/mode/css/css.js"></script>
+    <script type="text/javascript" src="/static/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+
+    <!-- 下面分别为显示行数、括号匹配和全屏插件 -->
+    <script type="text/javascript" src="/static/codemirror/addon/selection/active-line.js"></script>
+    <script type="text/javascript" src="/static/codemirror/addon/edit/matchbrackets.js"></script>
+    <script type="text/javascript" src="/static/codemirror/addon/display/fullscreen.js"></script>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                project: {},
+            },
+            methods: {
+                getProject: function(projectId) {
+                    var _this = this;
+                    nspider.getProject(projectId, function(error, result) {
+                        if (error) {
+                            alert('loading project error, projectId:' + projectId);
+                        } else {
+                            _this.project = result.data;
+                        }
+                    })
+                },
+                run: function() {
+                    alert(window.editor.getValue())
+                }
+            },
+            created: function() {
+                var url = window.location.href;
+                var projectId = nspider.getParams(url)['projectId'];
+                this.getProject(projectId);
+            },
+            watch: {
+                project: function(project) {
+                    window.editor.setValue(project.script);
+                }
+            }
+        })
+
+        initCodeMirror();
+
+        function initCodeMirror() {
+            window.editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+                lineNumbers: true,     // 显示行数
+                indentUnit: 4,         // 缩进单位为4
+                styleActiveLine: true, // 当前行背景高亮
+                matchBrackets: true,   // 括号匹配
+                mode: 'javascript',     // HMTL混合模式
+                lineWrapping: true,    // 自动换行
+                theme: 'monokai',      // 使用monokai模版
+                readOnly: false,
+                autofocus: true,
+                showCursorWhenSelecting:true,
+
+            });
+
+            window.editor.setSize('100%', 600);
+        }
+    </script>
+</body>
+</html>

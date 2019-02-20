@@ -117,9 +117,9 @@ module.exports = function(config) {
         const runningCount = await this.TaskModel.count({where: {projectId: projects[i].id, status: utils.constant.STATUS.TASK_RUNNING}});
         const errorCount = await this.TaskModel.count({where: {projectId: projects[i].id, status: utils.constant.STATUS.TASK_ERROR}});
         const resultCount = await this.TaskModel.count({where: {projectId: projects[i].id}});
-        projects[i].runningCount = runningCount;
-        projects[i].errorCount = errorCount;
-        projects[i].resultCount = resultCount;
+        projects[i].dataValues.runningCount = runningCount;
+        projects[i].dataValues.errorCount = errorCount;
+        projects[i].dataValues.resultCount = resultCount;
       }
       reply.send({ret: true, code: 0, data: projects || []});
     });
