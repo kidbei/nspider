@@ -9,23 +9,27 @@
     <link href="/static/codemirror/css/codemirror.css" rel="stylesheet" type="text/css">
     <link href="/static/codemirror/css/monokai.css" rel="stylesheet" type="text/css">
     <style>
-        
+        #debug-container {
+            height: 600px;
+            background-color: black;
+            color: white;
+        }
     </style>
 </head>
 <body >
 
     <div class="container-fluid" id="app">
-        <br>
         <div class="row">
             <div class="col-4"></div>
             <div class="col-8">
-                <button class="btn btn-info">提交</button>
+                <button class="btn btn-info" @click="save">提交</button>
                 <button class="btn btn-info" @click="run">运行</button>
             </div>
         </div>
-        <br>
         <div class="row">
-            <div class="col-4" id="debug-container"></div>
+            <div class="col-4">
+                <div id="debug-container"></div>
+            </div>
             <div class="col-8" id="code-container">
                 <textarea id="code"></textarea>
             </div>
@@ -73,6 +77,20 @@
                 },
                 run: function() {
                     alert(window.editor.getValue())
+                },
+                save: function() {
+                    var script = window.editor.getValue();
+                    if (!script) {
+                        alert('script can not be empty');
+                        return;
+                    }
+                    nspider.updateScript(this.project.id, script, function(error, result){
+                        if (error) {
+                            alert('save failed:' + error.message);
+                        } else {
+                            alert('save success');
+                        }
+                    });
                 }
             },
             created: function() {
@@ -91,7 +109,7 @@
 
         function initCodeMirror() {
             window.editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-                lineNumbers: true,     // 显示行数
+                lineNumbers: false,     // 显示行数
                 indentUnit: 4,         // 缩进单位为4
                 styleActiveLine: true, // 当前行背景高亮
                 matchBrackets: true,   // 括号匹配

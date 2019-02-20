@@ -7,6 +7,7 @@ const vm = require('vm');
 const cheerio = require('cheerio');
 const md5Hex = require('md5-hex');
 const iconv = require('iconv-lite');
+const request = require('request');
 
 module.exports = function(config) {
 
@@ -147,25 +148,20 @@ module.exports = function(config) {
         logger.info('process result:%s', JSON.stringify(result, null, '\t'));
         await this.ResultModel.create({projectId: project.id, taskId: result.taskId, result:JSON.stringify(result)});
       },
+      request: request,
+      mq: Mq.getMq(),
       _crawl: async (url, options) => {
         const runParams = {method: options.callback, url: url, projectId: project.id, 
           charset: options.charset, proxy: options.proxy || undefined, expireTime: options.expireTime,
-          fetch_type: options.fetch_type || 'html',headers:options.headers || {}, _inner_params: {project:project}};
-        Mq.getMq().produce(utils.constant.TOPIC_SCHEDULE, runParams);
+          attrs: options.attrs || {},fetch_type: options.fetch_type || 'html',headers:options.headers || {}, 
+          _inner_params: {project:project}};
+        contextObj.mq.produce(utils.constant.TOPIC_SCHEDULE, runParams);
       }
     };
     const context = vm.createContext(contextObj);
     const script = new vm.Script(project.script);
     script.runInContext(context);
     project.context = context;
-  }
-
-  this._init_limiter = (project) => {
-    const rate_number = project.rateNumber;
-    const rate_unit = project.rateUnit;
-    const limiter = new RateLimiter(rate_number, rate_unit);
-    logger.info('init project limiter,projectId:%s, %s,%s', project.id, rate_number, rate_unit);
-    this._project_limiter[project.id] = limiter;
   }
 
   this._html_2_document = (html) => {

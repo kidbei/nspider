@@ -16,7 +16,7 @@ window.nspider = {
                 }
             },
             error: function(error) {
-                callback(error);
+                callback(new Error(error.responseJSON.msg));
             }
         });
     },
@@ -43,7 +43,7 @@ window.nspider = {
                 }
             },
             error: function(error) {
-                callback(error);
+                callback(new Error(error.responseJSON.msg));
             }
         });
     },
@@ -64,7 +64,7 @@ window.nspider = {
                 }
             },
             error: function(error) {
-                callback(error);
+                callback(new Error(error.responseJSON.msg));
             }
         });
     },
@@ -84,7 +84,29 @@ window.nspider = {
                 }
             },
             error: function(error) {
-                callback(error);
+                callback(new Error(error.responseJSON.msg));
+            }
+        });
+    },
+
+
+    updateScript: function(projectId, script, callback) {
+        $.ajax({
+            type: 'POST',
+            url: '/api/projects/' + projectId + '/properties/script',
+            dataType: 'json',
+            contentType: 'application/json',
+            headers: {token: $.cookie('token')},
+            data: JSON.stringify({script: script}),
+            success: function(result) {
+                if (result.ret === false) {
+                    callback(new Error(result.msg));
+                } else {
+                    callback(undefined, result);
+                }
+            },
+            error: function(error) {
+                callback(new Error(error.responseJSON.msg));
             }
         });
     },

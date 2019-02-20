@@ -132,6 +132,13 @@ module.exports = function(config) {
     });
 
 
+    fastify.post('/api/projects/:projectId/properties/script', async (request, reply) => {
+      const projectId = request.params.projectId;
+      const script = request.body.script;
+      await this.ProjectModel.update({script: script}, {where: {id: projectId}});
+      reply.send({ret: true, code: 0});
+    });
+
   }
 
 
