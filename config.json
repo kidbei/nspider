@@ -32,7 +32,13 @@
       }
     ],
     "host": "0.0.0.0",
-    "port": 8090
+    "port": 8090,
+    "fetcher_service": [
+      {
+        "rpc_host": "127.0.0.1",
+        "rpc_port": 9980
+      }
+    ]
   },
   "mq": {
     "type": "local"
