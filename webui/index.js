@@ -6,6 +6,7 @@ const path = require('path');
 const uuidv4 = require('uuid/v4');
 const serveStatic = require('serve-static')
 const utils = require('../utils');
+const ScriptRunner = require('./ScriptRunner');
 const fastify = require('fastify')({
   logger: true
 });
@@ -28,6 +29,7 @@ module.exports = function(config) {
   this.ProjectModel = null;
   this.TaskModel = null;
   this.ResultModel = null;
+  this.scriptRunner = null;
 
   this.start = async () => {
     const webui_config = merge(this.default_opts, config['webui']);
@@ -38,6 +40,7 @@ module.exports = function(config) {
       logger.info('start webui server http://%s:%d', webui_config.host, webui_config.port);
     }
     this._init_account(webui_config);
+    this.scriptRunner = new ScriptRunner(config['webui']['fetcher_service']);
 
     this.ModuleModel = require('../model/Module');
     this.AuthRecordModel = require('../model/AuthRecord');
@@ -139,7 +142,23 @@ module.exports = function(config) {
       reply.send({ret: true, code: 0});
     });
 
+
+    fastify.post('/api/projects/:projectId/debug', async (request, reply) => {
+      const scriptText = request.body.script;
+      const method = request.body.method;
+      const url = request.body.url;
+      const params = request.body.params;
+      const result = await this.scriptRunner.debug(scriptText, method, url, params);
+      if (result.error) {
+        reply.send({ret: false, code: -500, msg: result.error.message});
+      } else {
+        reply.send({ret: true, code: 0, data: result.result});
+      }
+    });
+
+
   }
+
 
 
   this._init_account = (webui_config) => {

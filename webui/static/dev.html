@@ -13,6 +13,8 @@
             height: 600px;
             background-color: black;
             color: white;
+            word-break:break-all;
+            overflow: auto;
         }
     </style>
 </head>
@@ -23,12 +25,21 @@
             <div class="col-4"></div>
             <div class="col-8">
                 <button class="btn btn-info" @click="save">提交</button>
-                <button class="btn btn-info" @click="run">运行</button>
+                <button class="btn btn-info" @click="debug">调试</button>
             </div>
         </div>
         <div class="row">
             <div class="col-4">
-                <div id="debug-container"></div>
+                <div id="debug-container">
+                    <div v-if="debugResult._result">
+                        {{debugResult}}
+                    </div>
+                    <ul v-else="debugResult">
+                        <li v-for="result in debugResult.nextResults" style="border-bottom:1px solid #ccc;">
+                            {{result.url}}  <button class="btn btn-sm btn-info" @click="debugMethod(result.url, result.method, result.params)">debug</button>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class="col-8" id="code-container">
                 <textarea id="code"></textarea>
@@ -63,6 +74,7 @@
             el: '#app',
             data: {
                 project: {},
+                debugResult:"",
             },
             methods: {
                 getProject: function(projectId) {
@@ -91,6 +103,38 @@
                             alert('save success');
                         }
                     });
+                },
+                debug: function() {
+                    var _this = this;
+                    var script = window.editor.getValue();
+                    var method = 'start';
+                    var url = this.project.startUrl;
+                    nspider.projectDebug(this.project.id, script, method, url, undefined, function(error, result) {
+                        if (error) {
+                            _this.debugResult = {_result: true, result: error.message};
+                        } else {
+                            if (result.data['_result'] === true) {
+                                _this.debugResult = {_result: true, result: JSON.stringify(result.data)};
+                            } else {
+                                _this.debugResult = result.data;
+                            }
+                        }
+                    })
+                },
+                debugMethod: function(url, method, params) {
+                    var _this = this;
+                    var script = window.editor.getValue();
+                    nspider.projectDebug(this.project.id, script, method, url, params || {}, function(error, result) {
+                        if (error) {
+                            _this.debugResult = {_result: true, result: error.message};
+                        } else {
+                            if (result.data['_result'] === true) {
+                                _this.debugResult = {_result: true, result: JSON.stringify(result.data)};
+                            } else {
+                                _this.debugResult = result.data;
+                            }
+                        }
+                    })
                 }
             },
             created: function() {
