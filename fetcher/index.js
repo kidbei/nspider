@@ -17,7 +17,15 @@ module.exports = function(config) {
       await this._start_rpc(rpc_config);
       this.serv.addMethod('fetch', async (param, callback) => {
         try{
+          if (!param.fetch_type) {
+            callback(new Error('unknown fetch type:' + param.fetch_type), undefined);
+            return;
+          }
           const fetcher = this.fetchers[param.fetch_type];
+          if (!fetcher) {
+            callback(new Error('unknown fetch type:' + param.fetch_type), undefined);
+            return;
+          }
           const result = await fetcher.fetch(param.url, param);
           callback(undefined, result);
         } catch(error){
