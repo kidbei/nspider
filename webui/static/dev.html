@@ -22,7 +22,10 @@
 
     <div class="container-fluid" id="app">
         <div class="row">
-            <div class="col-4"></div>
+            <div class="col-4">
+                <span>method: {{currentMethod}}</span>&nbsp;|&nbsp;
+                <span>status: {{methodRunStatus}}</span>
+            </div>
             <div class="col-8">
                 <button class="btn btn-info" @click="save">提交</button>
                 <button class="btn btn-info" @click="debug">调试</button>
@@ -31,10 +34,10 @@
         <div class="row">
             <div class="col-4">
                 <div id="debug-container">
-                    <div v-if="debugResult._result">
-                        {{debugResult}}
+                    <div v-if="debugResult._result == true">
+                        {{debugResult.result}}
                     </div>
-                    <ul v-else="debugResult">
+                    <ul v-else>
                         <li v-for="result in debugResult.nextResults" style="border-bottom:1px solid #ccc;">
                             {{result.url}}  <button class="btn btn-sm btn-info" @click="debugMethod(result.url, result.method, result.params)">debug</button>
                         </li>
@@ -75,6 +78,8 @@
             data: {
                 project: {},
                 debugResult:"",
+                currentMethod:'',
+                methodRunStatus: 'not run'
             },
             methods: {
                 getProject: function(projectId) {
@@ -108,11 +113,15 @@
                     var _this = this;
                     var script = window.editor.getValue();
                     var method = 'start';
+                    this.currentMethod = method;
+                    this.methodRunStatus = 'running';
                     var url = this.project.startUrl;
                     nspider.projectDebug(this.project.id, script, method, url, undefined, function(error, result) {
                         if (error) {
+                            _this.methodRunStatus = 'failed';
                             _this.debugResult = {_result: true, result: error.message};
                         } else {
+                            _this.methodRunStatus = 'complete';
                             if (result.data['_result'] === true) {
                                 _this.debugResult = {_result: true, result: JSON.stringify(result.data)};
                             } else {
@@ -122,12 +131,16 @@
                     })
                 },
                 debugMethod: function(url, method, params) {
+                    this.currentMethod = method;
+                    this.methodRunStatus = 'running';
                     var _this = this;
                     var script = window.editor.getValue();
                     nspider.projectDebug(this.project.id, script, method, url, params || {}, function(error, result) {
                         if (error) {
+                            _this.methodRunStatus = 'failed';
                             _this.debugResult = {_result: true, result: error.message};
                         } else {
+                            _this.methodRunStatus = 'complete';
                             if (result.data['_result'] === true) {
                                 _this.debugResult = {_result: true, result: JSON.stringify(result.data)};
                             } else {
