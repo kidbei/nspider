@@ -20,18 +20,13 @@ module.exports = function(config) {
 
   this.onSchedule = (data) => {
     try{
-      // logger.info('on schedule:%s', JSON.stringify(data));
       if (!data.projectId) {
         logger.error('invalid schedule data: no projectId,data:%s', JSON.stringify(data));
       }
       if (!data.method) {
         logger.error('invalid schedule data: no method, data:%s', JSON.stringify(data));
       }
-      const params = data['_inner_params'];
-      delete data['_inner_params'];
-      const project = params.project;
-
-      const limiter = this._get_limiter(project.id, project.rateNumber, project.rateUnit);
+      const limiter = this._get_limiter(data.projectId, data.rateNumber, data.rateUnit);
       limiter.removeTokens(1, () => {
         Mq.getMq().produce(utils.constant.TOPIC_PROCESS, data);
       });

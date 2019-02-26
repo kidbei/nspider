@@ -40,7 +40,7 @@ module.exports = function(config) {
       logger.info('start webui server http://%s:%d', webui_config.host, webui_config.port);
     }
     this._init_account(webui_config);
-    this.scriptRunner = new ScriptRunner(config['webui']['fetcher_service']);
+    this.scriptRunner = new ScriptRunner(config['webui']['fetcher_service'], logger);
 
     this.ModuleModel = require('../model/Module');
     this.AuthRecordModel = require('../model/AuthRecord');

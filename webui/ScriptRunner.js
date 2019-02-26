@@ -1,21 +1,20 @@
 const vm = require('vm');
 const Promise = require('bluebird');
 const request = require('request');
-const logger = require('log4js').getLogger('webui');
 const Rpc = require('node-json-rpc');
 const cheerio = require('cheerio');
 const iconv = require('iconv-lite');
-
+const Mq = require('../mq');
 
 /**
  * @augments fetcher_services: [{host:'', port:0}]
  */
-module.exports = function(fetcher_services) {
+module.exports = function(fetcher_services, logger) {
 
     this._fetcher_clients = [];
-    this.requestIdGenerator = 0;
+    this._project_ctx_cache = {};
 
-    this.getDebugContext = async () => {
+    this.getDebugContext = async (scriptText) => {
         const contextObj = {
             result:undefined,
             nextResults: [],
@@ -29,16 +28,44 @@ module.exports = function(fetcher_services) {
                 contextObj.nextResults.push({url: url, method: method, params: options});
             }
         };
+        const context = vm.createContext(contextObj);
+        const script = new vm.Script(scriptText);
+        script.runInContext(context);
         return contextObj;
     }
 
+
+    this.getProdContext = async (projectId, scriptText, on_result, rateNumber, rateUnit) => {
+        let ctx = this._project_ctx_cache[projectId];
+        if (ctx) {
+            return ctx;
+        }
+        const contextObj = {
+            on_result: on_result,
+            request: request,
+            mq: Mq.getMq(),
+            _crawl: async (url, options) => {
+              const runParams = {method: options.callback, url: url, projectId: projectId, 
+                charset: options.charset, proxy: options.proxy || undefined, expireTime: options.expireTime,
+                attrs: options.attrs || {},fetch_type: options.fetch_type || 'html',headers:options.headers || {},
+                projectId: projectId, rateNumber: rateNumber, rateUnit: rateUnit
+              };
+              contextObj.mq.produce(utils.constant.TOPIC_SCHEDULE, runParams);
+            }
+          };
+        ctx = vm.createContext(contextObj);
+        const script = new vm.Script(scriptText);
+        script.runInContext(ctx);
+        this._project_ctx_cache[projectId] = contextObj;
+        return contextObj;
+    }
+
+
+
     this.debug = async (scriptText, method, url, params) => {
         try{
-            const contextObj = await this.getDebugContext();
+            const contextObj = await this.getDebugContext(scriptText);
             contextObj.currentMethod = method;
-            const context = vm.createContext(contextObj);
-            const script = new vm.Script(scriptText);
-            script.runInContext(context);
             let result;
             if (method === 'start') {
                 result = contextObj[method](url);
@@ -46,12 +73,12 @@ module.exports = function(fetcher_services) {
                 const response = await this._fetch(url, params);
                 if (params.charset) {
                     response.content = iconv.decode(new Buffer(response.content, 'base64'), params.charset);
-                  } else {
-                    response.content = new Buffer(response.content, 'base64').toString();
-                  }
-                  response.doc = (exp) => {return this._html_2_document(response.content)(exp)};
-                  response.text = response.content;
-                  result = contextObj[method](response);
+                } else {
+                  response.content = new Buffer(response.content, 'base64').toString();
+                }
+                response.doc = (exp) => {return this._html_2_document(response.content)(exp)};
+                response.text = response.content;
+                result = contextObj[method](response);
             }
             result = await this._resolve_result(result);
             if (result['_result'] === true) {
@@ -65,6 +92,28 @@ module.exports = function(fetcher_services) {
             return {error: error, result: undefined};
         }
     }
+
+    
+    this.runProd = async (contextObj, method, url, params) => {
+      let result;
+      if (method === 'start') {
+        result = contextObj[method](url);
+      } else {
+        const response = await this._fetch(url, params);
+        if (params.charset) {
+            response.content = iconv.decode(new Buffer(response.content, 'base64'), params.charset);
+        } else {
+          response.content = new Buffer(response.content, 'base64').toString();
+        }
+        response.doc = (exp) => {return this._html_2_document(response.content)(exp)};
+        response.text = response.content;
+        result = contextObj[method](response);
+      }
+      result = await this._resolve_result(result);
+      return result;
+    }
+
+
 
     this._html_2_document = (html) => {
         return cheerio.load(html);
