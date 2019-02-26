@@ -8,6 +8,7 @@ const cheerio = require('cheerio');
 const md5Hex = require('md5-hex');
 const iconv = require('iconv-lite');
 const request = require('request');
+const ScriptRunner = require('../webui/ScriptRunner');
 
 module.exports = function(config) {
 
@@ -18,6 +19,7 @@ module.exports = function(config) {
   this.ResultModel = null;
   this.requestIdGenerator = 0;
   this.stopedProjects = new Set();
+  this.scriptRunner = null;
 
   this.start = async () => {
     try{
@@ -26,7 +28,7 @@ module.exports = function(config) {
       this.ResultModel = require('../model/Result');
       await Mq.getMq().register(utils.constant.TOPIC_PROCESS, this._on_process);
       await Mq.getMq().register(utils.constant.TOPIC_STOP_PROJECT, this._on_project_stop);
-      this._init_fetcher_clients();
+      this.scriptRunner = new ScriptRunner(config.process.fetcher_service || [], logger);
       return await Promise.resolve();
     } catch(error){
       return await Promise.reject(error);

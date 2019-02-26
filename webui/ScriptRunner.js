@@ -1,10 +1,10 @@
 const vm = require('vm');
 const Promise = require('bluebird');
 const request = require('request');
-const Rpc = require('node-json-rpc');
 const cheerio = require('cheerio');
 const iconv = require('iconv-lite');
 const Mq = require('../mq');
+const jayson = require('jayson');
 
 /**
  * @augments fetcher_services: [{host:'', port:0}]
@@ -70,7 +70,7 @@ module.exports = function(fetcher_services, logger) {
             if (method === 'start') {
                 result = contextObj[method](url);
             } else {
-                const response = await this._fetch(url, params);
+                const response = await this._fetch(url, params.fetch_type || 'html', params);
                 if (params.charset) {
                     response.content = iconv.decode(new Buffer(response.content, 'base64'), params.charset);
                 } else {
@@ -120,21 +120,19 @@ module.exports = function(fetcher_services, logger) {
     }
 
 
-    this._fetch = async (url, options) => {
+    this._fetch = async (url, fetch_type, options) => {
         const fetcher = this.select_fetcher_client();
         options.url = url;
-        const requestId = this.requestIdGenerator += 1 ;
         return new Promise((resolve, reject) => {
-          fetcher.call({'jsonrpc': '2.0', 'method':'fetch', 'params': options, id: requestId}, (error, result) =>{
-                if (error) {
-                  reject(error);
-                } else if (result.error) {
-                  reject(result.error);
-                } else {
-                  resolve(result.result);
-                }
+          fetcher.request('fetch', [{url: url, fetch_type: fetch_type, options: options}], function(err, response) {
+            if(err) {
+              reject(err);
+            } else if (response.error) {
+              reject(response.error);
+            } else {
+              resolve(response.result);
             }
-          )
+          });
         })
       }
 
@@ -169,14 +167,8 @@ module.exports = function(fetcher_services, logger) {
         for (let i = 0; i < fetcher_services.length; i ++) {
           let host = fetcher_services[i].rpc_host;
           let port = fetcher_services[i].rpc_port;
-          let options = {
-            port: port,
-            host: host,
-            path: '/',
-            strict: true
-          };
           logger.info('init fetcher,host:%s,port:%d', host, port);
-          let client = new Rpc.Client(options);
+          let client = jayson.client.tcp({host: host, port: port});
           this._fetcher_clients.push(client);
         }
       })();

@@ -3,9 +3,10 @@ const Rpc = require('node-json-rpc');
 const Promise = require('bluebird');
 const HttpFetcher = require('./http_fetcher');
 const PhantomFetcher = require('./phantomjs_fetcher');
+const jayson = require('jayson');
 
 module.exports = function(config) {
-  this.serv = null;
+  this.rpcServer = null;
   this.fetchers = {};
 
   this.start = async function () {
@@ -15,23 +16,6 @@ module.exports = function(config) {
       this.fetchers['js'] = new PhantomFetcher();
       const rpc_config = config.fetcher || {};
       await this._start_rpc(rpc_config);
-      this.serv.addMethod('fetch', async (param, callback) => {
-        try{
-          if (!param.fetch_type) {
-            callback(new Error('unknown fetch type:' + param.fetch_type), undefined);
-            return;
-          }
-          const fetcher = this.fetchers[param.fetch_type];
-          if (!fetcher) {
-            callback(new Error('unknown fetch type:' + param.fetch_type), undefined);
-            return;
-          }
-          const result = await fetcher.fetch(param.url, param);
-          callback(undefined, result);
-        } catch(error){
-          callback(error, undefined);
-        }
-      })
       return await Promise.resolve();
     } catch(error){
       logger.error('init fetcher failed', error);
@@ -56,26 +40,21 @@ module.exports = function(config) {
   }
 
   this._start_rpc = async (rpc_config) => {
+    const _this = this;
+    this.rpcServer = jayson.server({
+      fetch: async function(args, callback) {
+        const params = args[0];
+        try {
+          const fetch_result = await _this.fetch(params['url'], params['fetch_type'], params['options']);
+          callback(null, fetch_result);
+        } catch(error) {
+          callback(error);
+        }
+      }
+    });
     const rpc_host = rpc_config.rpc_host || '127.0.0.1';
     const rpc_port = rpc_config.rpc_port || 9980; 
-    const _this = this;
-    return await new Promise((resolve, reject) => {
-      const  options = {
-        port: rpc_port,
-        host: rpc_host,
-        path: '/',
-        strict: true
-      };
-      _this.serv = new Rpc.Server(options);
-      _this.serv.start(function (error) {
-        if (error) {
-          logger.error('start fetcher rpc server failed, host:%s,port:%d', rpc_host, rpc_port);
-          reject(error);
-        } else {
-          logger.info('start fetcher rpc server success, host:%s,port:%d', rpc_host, rpc_port);
-          resolve();
-        };
-      });
-    })
+
+    this.rpcServer.tcp().listen(rpc_port, rpc_host);
   }
 }
