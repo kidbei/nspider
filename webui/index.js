@@ -1,5 +1,4 @@
 const logger = require('log4js').getLogger('webui');
-const Rpc = require('node-json-rpc');
 const Promise = require('bluebird');
 const merge = require('merge');
 const path = require('path');
@@ -20,7 +19,7 @@ module.exports = function(config) {
   this.account_auth_keys = {};
   this.default_opts = {
     'need-auth': false,
-    'host': '0.0.0.0',
+    'host': '127.0.0.1',
     'port': 8090
   }
 

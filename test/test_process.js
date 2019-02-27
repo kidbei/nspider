@@ -29,7 +29,7 @@ const test = async () => {
   const nspider = new Nspider();
   await nspider.start();
   const Project = require('../model/Project');
-  await Project.create({name: 'test-project', script: text, status: Utils.constant.STATUS.PROJECT_DEV, rateNumber:30, rateUnit: 'minute', startUrl: startUrl});
+  await Project.create({name: 'test-project', script: text, status: Utils.constant.STATUS.PROJECT_DEV, rateNumber:1, rateUnit: 'second', startUrl: startUrl});
   const scheduler = nspider.getModule('scheduler');
   await scheduler.startProject(1, startUrl);
 }

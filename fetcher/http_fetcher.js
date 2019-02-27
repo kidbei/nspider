@@ -38,7 +38,7 @@ module.exports = function() {
             if (logger.isDebugEnabled()) {
               logger.debug('fetch success,url:%s', url);
             }
-            const nspider_response = {headers: response.headers, statusCode: response.statusCode, content: body.toString('base64')};
+            const nspider_response = {headers: response.headers, statusCode: response.statusCode, content: body.toString()};
             resolve(nspider_response);
           }
         }

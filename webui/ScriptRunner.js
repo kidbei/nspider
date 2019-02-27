@@ -5,6 +5,7 @@ const cheerio = require('cheerio');
 const iconv = require('iconv-lite');
 const Mq = require('../mq');
 const jayson = require('jayson');
+const utils = require('../utils');
 
 /**
  * @augments fetcher_services: [{host:'', port:0}]
@@ -13,6 +14,9 @@ module.exports = function(fetcher_services, logger) {
 
     this._fetcher_clients = [];
     this._project_ctx_cache = {};
+    this.default_on_result = async (result) => {
+      logger.info('on result:%s', JSON.stringify(result));
+    }
 
     this.getDebugContext = async (scriptText) => {
         const contextObj = {
@@ -35,13 +39,12 @@ module.exports = function(fetcher_services, logger) {
     }
 
 
-    this.getProdContext = async (projectId, scriptText, on_result, rateNumber, rateUnit) => {
+    this.getProdContext = async (projectId, scriptText, rateNumber, rateUnit) => {
         let ctx = this._project_ctx_cache[projectId];
         if (ctx) {
             return ctx;
         }
         const contextObj = {
-            on_result: on_result,
             request: request,
             mq: Mq.getMq(),
             _crawl: async (url, options) => {
@@ -56,6 +59,9 @@ module.exports = function(fetcher_services, logger) {
         ctx = vm.createContext(contextObj);
         const script = new vm.Script(scriptText);
         script.runInContext(ctx);
+        if (!contextObj['on_result']) {
+          contextObj.on_result = this.default_on_result;
+        }
         this._project_ctx_cache[projectId] = contextObj;
         return contextObj;
     }
@@ -72,9 +78,9 @@ module.exports = function(fetcher_services, logger) {
             } else {
                 const response = await this._fetch(url, params.fetch_type || 'html', params);
                 if (params.charset) {
-                    response.content = iconv.decode(new Buffer(response.content, 'base64'), params.charset);
+                    response.content = iconv.decode(Buffer.from(response.content), params.charset);
                 } else {
-                  response.content = new Buffer(response.content, 'base64').toString();
+                  response.content = Buffer.from(response.content);
                 }
                 response.doc = (exp) => {return this._html_2_document(response.content)(exp)};
                 response.text = response.content;
@@ -99,11 +105,11 @@ module.exports = function(fetcher_services, logger) {
       if (method === 'start') {
         result = contextObj[method](url);
       } else {
-        const response = await this._fetch(url, params);
+        const response = await this._fetch(url, params.fetch_type, params);
         if (params.charset) {
-            response.content = iconv.decode(new Buffer(response.content, 'base64'), params.charset);
+            response.content = iconv.decode(Buffer.from(response.content), params.charset);
         } else {
-          response.content = new Buffer(response.content, 'base64').toString();
+          response.content = Buffer.from(response.content);
         }
         response.doc = (exp) => {return this._html_2_document(response.content)(exp)};
         response.text = response.content;
