@@ -17,10 +17,22 @@ module.exports = function() {
     return Promise.resolve();
   }
 
-  this.register = (topic, callback) => {
+  /**
+   * 注册监听器
+   * @param topic
+   * @param callback
+   * @param broadcast 是否广播
+   * @returns {*}
+   */
+  this.register = (topic, callback, broadcast) => {
     logger.info('register consumer for topic:%s', topic);
     if (!this.consumers[topic]) {
       this.consumers[topic] = [];
+    }
+    if (!broadcast || broadcast === false) {
+      if (this.consumers[topic]) {
+        throw new Error('topic is already registered:' + topic + ',function:' + this[topic]);
+      }
     }
     this.consumers[topic].push(callback);
     this.eventBus.on(topic, callback);

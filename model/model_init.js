@@ -12,6 +12,7 @@ module.exports = {
     this._init_model_sequelize('module', config.system.db);
     this._init_model_sequelize('auth_record', config.system.db);
   },
+
   _get_db_key: function(db_config) {
     if (db_config.type === 'sqlite') {
       return db_config.type + db_config.storage;
@@ -20,6 +21,7 @@ module.exports = {
     return db_config.type + db_config.host + db_config.username + db_config.password + 
        db_config.port + db_config.database;
   },
+
   _init_model_sequelize: function(model_name, db_config) {
     const db_key = this._get_db_key(db_config);
     logger.info('init db config for model:%s, db_key:%s', model_name, db_key);

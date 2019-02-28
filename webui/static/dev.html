@@ -40,7 +40,7 @@
                     </div>
                     <ul v-else>
                         <li v-for="result in debugResult.nextResults" style="border-bottom:1px solid #ccc;">
-                            {{result.url}}  <button class="btn btn-sm btn-info" @click="debugMethod(result.url, result.method, result.params)">debug</button>
+                            {{result.url}}  <button class="btn btn-sm btn-success" @click="debugMethod(result.url, result.method, result.params)">debug</button>
                         </li>
                     </ul>
                 </div>
