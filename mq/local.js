@@ -30,7 +30,7 @@ module.exports = function() {
       this.consumers[topic] = [];
     }
     if (!broadcast || broadcast === false) {
-      if (this.consumers[topic]) {
+      if (this.consumers[topic].length > 0) {
         throw new Error('topic is already registered:' + topic + ',function:' + this[topic]);
       }
     }
