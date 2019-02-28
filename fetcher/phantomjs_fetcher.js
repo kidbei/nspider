@@ -34,9 +34,7 @@ module.exports = function() {
       } catch (error) {
         logger.error('fetch url failed', error);
         return Promise.reject(error);
-      } finally {
-        await instance.exit();
-      }
+      } 
     })
   }
 

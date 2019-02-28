@@ -23,6 +23,7 @@
     <div class="container-fluid" id="app">
         <div class="row">
             <div class="col-4">
+                <a href="/static/index.html">首页</a>
                 <span>method: {{currentMethod}}</span>&nbsp;|&nbsp;
                 <span>status: {{methodRunStatus}}</span>
             </div>
@@ -39,7 +40,7 @@
                     </div>
                     <ul v-else>
                         <li v-for="result in debugResult.nextResults" style="border-bottom:1px solid #ccc;">
-                            {{result.url}}  <button class="btn btn-sm btn-info" @click="debugMethod(result.url, result.method, result.params)">debug</button>
+                            {{result.url}}  <button class="btn btn-sm btn-success" @click="debugMethod(result.url, result.method, result.params)">debug</button>
                         </li>
                     </ul>
                 </div>
