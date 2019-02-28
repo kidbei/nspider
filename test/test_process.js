@@ -12,7 +12,7 @@ const text = `
       const href = result.doc(el).find('.header a').attr('href');
       _this._crawl(href, {callback: 'detail'})
     });
-    return {_result: false}
+    return {_result: false}a
   }
 
   this.detail = (response) => {

@@ -2,25 +2,25 @@
   "system": {
     "db": {
       "type": "sqlite",
-      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
+      "storage": "./nspider.sqlite"
     }
   },
   "task": {
     "db": {
       "type": "sqlite",
-      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
+      "storage": "./nspider.sqlite"
     }
   },
   "project": {
     "db": {
       "type": "sqlite",
-      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
+      "storage": "./nspider.sqlite"
     }
   },
   "result": {
     "db": {
       "type": "sqlite",
-      "storage": "/Users/kidbei/Downloads/nspider.sqlite"
+      "storage": "./nspider.sqlite"
     }
   },
   "webui": {

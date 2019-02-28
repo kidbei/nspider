@@ -147,6 +147,10 @@ module.exports = function(config) {
       const method = request.body.method;
       const url = request.body.url;
       const params = request.body.params;
+      if (!method) {
+        reply.send({ret: false, code: -400, msg: 'method not found'});
+        return;
+      }
       const result = await this.scriptRunner.debug(scriptText, method, url, params);
       if (result.error) {
         reply.send({ret: false, code: -500, msg: result.error.message});
@@ -155,6 +159,31 @@ module.exports = function(config) {
       }
     });
 
+
+    fastify.post('/api/projects', async (request, reply) => {
+      const script = `
+        this.start = async (url) => {
+          this._crawl(url, {callback: 'index_page'});
+          return {_result: false}
+        };
+
+        this.index_page = async (result) => {
+          //todo something
+        };
+
+      `;
+        const project = request.body;
+        project.script = script;
+        project.status = utils.constant.STATUS.PROJECT_DEV;
+        try {
+          await this.ProjectModel.create(project);
+        } catch (error) {
+          logger.error('create project error:%s', JSON.stringify(project), error);
+          reply.send({ret: false, code: -500, msg: error.message});
+          return;
+        }
+        reply.send({ret: true, code: 0, data: {id: project.id}});
+    });
 
   }
 

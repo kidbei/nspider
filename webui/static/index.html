@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>nspider dashboard</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
 </head>
-<body >
+
+<body>
     <div class="container-fluid" id="app">
         <div class="row">
+            <div class="col-12"><h3>节点信息</h3></div>
             <div class="col-3" v-for="(value, key) in moduleInfoList" :key="key">
                 <div class="card" style="width: 18rem;">
                     <div class="card-header">
@@ -26,23 +30,26 @@
         <br>
 
         <div class="row">
-            <div class="col-12">
+            <div class="col-6">
                 <h3>项目列表</h3>
+            </div>
+            <div class="col-6" style="text-align: right;">
+                <button class="btn btn-success" @click="show_create">新建</button>
             </div>
             <div class="col-12">
                 <table id="project-table" width="100%" style="text-align:center;" border="1" cellspacing="0">
                     <thead>
                         <tr>
-                        <th>id</th>
-                        <th>名称</th>
-                        <th>状态</th>
-                        <th>频率</th>
-                        <th>重复</th>
-                        <th>结果数</th>
-                        <th>执行中</th>
-                        <th>失败</th>
-                        <th>创建时间</th>
-                        <th>操作</th>
+                            <th>id</th>
+                            <th>名称</th>
+                            <th>状态</th>
+                            <th>频率</th>
+                            <th>重复</th>
+                            <th>结果数</th>
+                            <th>执行中</th>
+                            <th>失败</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -56,7 +63,9 @@
                             <td>{{project.runningCount}}</td>
                             <td>{{project.errorCount}}</td>
                             <td>{{project.createdAt}}</td>
-                            <td></td>
+                            <td>
+                                <a :href="'/static/dev.html?projectId=' + project.id">编辑</a>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -65,66 +74,140 @@
 
     </div>
 
+    <div class="modal fade" id="create_project_modal" tabindex="-1" role="dialog"
+        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">创建项目</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="create_project_form">
+                        <div class="form-group">
+                            <label>项目名称</label>
+                            <input type="text" class="form-control" placeholder="项目名称" name="name">
+                        </div>
+                        <div class="form-group">
+                            <label>startUrl</label>
+                            <input type="text" class="form-control" placeholder="起始URL" name="startUrl">
+                        </div>
+                        <div class="form-group">
+                            <label>频率控制</label>
+                            <div class="row">
+                                <div class="col-6">
+                                    <label>单位</label>
+                                    <select class="form-control" name="rateUnit">
+                                        <option value="second">秒</option>
+                                        <option value="minute">分</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label>数量</label>
+                                    <input type="text" class="form-control" name="startUrl">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>执行间隔</label>
+                            <input type="text" class="form-control" placeholder="在指定时间后重复执行" name="againAfter">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="create()">保存</button>
+                </div>
+            </div>
+        </div>
 
-    <script src="/static/js/jquery-3.3.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-    <script src="/static/js/jquery.cookie.js"></script>
-    <script src="/static/js/nspider.js"></script>
-    <script src="https://unpkg.com/vue"></script>
 
-    <script>
-        new Vue({
-            el: '#app',
-            data: {
-                moduleInfoList: [],
-                projectList: [],
-            },
-            methods: {
-                getModules: function() {
-                    var _this = this;
-                    nspider.getModuleList(function(error, result) {
-                        if (error) {
-                            alert('get module list error' + error.toString());
-                        } else {
-                            var moduleInfoList = {};
-                            for (var i = 0; i < result.data.length; i ++) {
-                                var module = result.data[i];
-                                if (!moduleInfoList[module.name]) {
-                                    moduleInfoList[module.name] = [];
-                                }
-                                moduleInfoList[module.name].push(module);
-                            }
-                            _this.moduleInfoList = moduleInfoList;
-                        }
-                    })
+
+        <script src="/static/js/jquery-3.3.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+            integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+            crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+            integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+            crossorigin="anonymous"></script>
+        <script src="/static/js/jquery.cookie.js"></script>
+        <script src="/static/js/nspider.js"></script>
+        <script src="https://unpkg.com/vue"></script>
+
+        <script>
+            new Vue({
+                el: '#app',
+                data: {
+                    moduleInfoList: [],
+                    projectList: [],
                 },
+                methods: {
+                    show_create: function () {
+                        $('#create_project_modal').modal('show');
+                    },
+                    getModules: function () {
+                        var _this = this;
+                        nspider.getModuleList(function (error, result) {
+                            if (error) {
+                                alert('get module list error' + error.toString());
+                            } else {
+                                var moduleInfoList = {};
+                                for (var i = 0; i < result.data.length; i++) {
+                                    var module = result.data[i];
+                                    if (!moduleInfoList[module.name]) {
+                                        moduleInfoList[module.name] = [];
+                                    }
+                                    moduleInfoList[module.name].push(module);
+                                }
+                                _this.moduleInfoList = moduleInfoList;
+                            }
+                        })
+                    },
 
-                getProjects: function(callback) {
+                    getProjects: function (callback) {
+                        var _this = this;
+                        nspider.getProjectList(function (error, result) {
+                            if (error) {
+                                alert('get project list error' + error.toString());
+                            } else {
+                                for (var i = 0; i < result.data.length; i++) {
+                                    var project = result.data[i];
+                                    project.rate = project.rateNumber + '/' + project.rateUnit;
+                                    project.again = (project.againAfter > 0);
+                                }
+                                _this.projectList = result.data;
+                                if (callback) {
+                                    callback();
+                                }
+                            }
+                        })
+                    }
+                },
+                created: function () {
                     var _this = this;
-                    nspider.getProjectList(function(error, result) {
-                        if (error) {
-                            alert('get project list error' + error.toString());
-                        } else {
-                            for (var i = 0; i < result.data.length; i ++) {
-                                var project = result.data[i];
-                                project.rate = project.rateNumber + '/' + project.rateUnit;
-                                project.again = (project.againAfter > 0);
-                            }
-                            _this.projectList = result.data;
-                            if (callback) {
-                                callback();
-                            }
-                        }
-                    })
+                    this.getModules();
+                    this.getProjects();
                 }
-            },
-            created: function() {
-                var _this = this;
-                this.getModules();
-                this.getProjects();
-            }
-        })
-    </script>
+            });
+
+            function create() {
+                var name = $('#create_project_form').find('input[name="name"]').val();
+                var startUrl = $('#create_project_form').find('input[name="startUrl"]').val();
+                var rateUnit = $('#create_project_form').find('select[name="rateUnit"]').val();
+                var rateNumber = $('#create_project_form').find('select[name="rateNumber"]').val();
+                var againAfter = $('#create_project_form').find('input[name="againAfter"]').val();
+                var project = {name: name, startUrl: startUrl, rateUnit: rateUnit, rateNumber: rateNumber, againAfter: againAfter};
+                nspider.createProject(project, function(error, result) {
+                    if (error) {
+                        alert('create failed:' + error.message);
+                    } else {
+                        window.location.reload();
+                    }
+                })
+            };
+        </script>
 </body>
+
 </html>
