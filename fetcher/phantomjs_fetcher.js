@@ -28,7 +28,7 @@ module.exports = function() {
           return Promise.reject(new Error('phantomjs returns:' + status));
         }
         const content = await page.property('content');
-        const response = {headers:{}, statusCode: 200, content: content};
+        const response = {headers:{}, statusCode: 200, content: Buffer.from(content).toString('base64')};
         logger.info('phantomjs fetch success, url:%s', url)
         return Promise.resolve(response);
       } catch (error) {

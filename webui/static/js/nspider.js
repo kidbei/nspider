@@ -111,6 +111,27 @@ window.nspider = {
         });
     },
 
+    createProject: function(project, callback) {
+        $.ajax({
+            type: 'POST',
+            url: '/api/projects',
+            dataType: 'json',
+            contentType: 'application/json',
+            headers: {token: $.cookie('token')},
+            data: JSON.stringify(project),
+            success: function(result) {
+                if (result.ret === false) {
+                    callback(new Error(result.msg));
+                } else {
+                    callback(undefined, result);
+                }
+            },
+            error: function(error) {
+                callback(new Error(error.responseJSON.msg));
+            }
+        });
+    },
+
     projectDebug: function(projectId, script, method, url, params, callback) {
         $.ajax({
             type: 'POST',

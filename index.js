@@ -2,7 +2,7 @@ const log4js = require('log4js');
 const merge = require('merge');
 const Model = require('./model');
 const args = process.argv;
-const start_mudule = args.length >= 3 ? args[2] : 'all';
+const start_module = args.length >= 3 ? args[2] : 'all';
 const Mq = require('./mq');
 const utils = require('./utils');
 
@@ -34,7 +34,7 @@ module.exports = function () {
     this.module_instances = {};
     this.config = {};
     this.ModuleModel = null;
-    this.module_heartbeat_timer;
+    this.module_heartbeat_timer = null;
     this.localIp = utils.getLocalIp();
 
     this.start = async () => {
@@ -101,20 +101,20 @@ module.exports = function () {
     }
 
     this._start_modules = async () => {
-        if (start_mudule != 'all') {
-            const _start_module = modules[start_mudule];
+        if (start_module !== 'all') {
+            const _start_module = modules[start_module];
             if (!_start_module) {
-              console.error('module %s not found', start_mudule);
+              console.error('module %s not found', start_module);
               process.exit();
             } else {
-              logger.info('to start module:%s', start_mudule);
-              await this._do_start_module(start_mudule, _start_module);
+              logger.info('to start module:%s', start_module);
+              await this._do_start_module(start_module, _start_module);
             }
           } else {
-            for (_module_name in modules) {
-              const _module = modules[_module_name];
-              logger.info('to start module:%s', _module_name);
-              await this._do_start_module(_module_name, _module);
+            for (let module_name in modules) {
+              const _module = modules[module_name];
+              logger.info('to start module:%s', module_name);
+              await this._do_start_module(module_name, _module);
             }
           }
     }

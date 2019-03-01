@@ -78,9 +78,9 @@ module.exports = function(fetcher_services, logger) {
             } else {
                 const response = await this._fetch(url, params.fetch_type || 'html', params);
                 if (params.charset) {
-                    response.content = iconv.decode(Buffer.from(response.content), params.charset);
+                    response.content = iconv.decode(Buffer.from(response.content, 'base64'), params.charset);
                 } else {
-                  response.content = Buffer.from(response.content);
+                  response.content = Buffer.from(response.content, 'base64').toString();
                 }
                 response.doc = (exp) => {return this._html_2_document(response.content)(exp)};
                 response.text = response.content;
@@ -108,8 +108,6 @@ module.exports = function(fetcher_services, logger) {
         const response = await this._fetch(url, params.fetch_type, params);
         if (params.charset) {
             response.content = iconv.decode(Buffer.from(response.content), params.charset);
-        } else {
-          response.content = Buffer.from(response.content);
         }
         response.doc = (exp) => {return this._html_2_document(response.content)(exp)};
         response.text = response.content;

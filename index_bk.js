@@ -45,10 +45,10 @@ if (start_mudule != 'all') {
     _do_start_module(_start_module);
   }
 } else {
-  for (_module_name in modules) {
-    const _module = modules[_module_name];
-    logger.info('to start module:%s', _module_name);
-    _do_start_module(_module_name, _module);
+  for (module_name in modules) {
+    const _module = modules[module_name];
+    logger.info('to start module:%s', module_name);
+    _do_start_module(module_name, _module);
   }
 }
 
