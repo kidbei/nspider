@@ -11,7 +11,7 @@ module.exports = function(config) {
 
   this.start = async () => {
     try{
-      await Mq.getMq().register(utils.constant.TOPIC_SCHEDULE, this.onSchedule);
+      await Mq.getMq().register(utils.constant.TOPIC_SCHEDULE, this.onSchedule, false);
       return Promise.resolve();
     } catch(error){
       return Promise.reject(error);
@@ -34,8 +34,6 @@ module.exports = function(config) {
       logger.error('on schedule error,data:%s', JSON.stringify(data), error)
     }
   }
-
-
 
   this._get_limiter = (projectId, limiterNum, limiterUnit) => {
     let limiter = this._project_limiter[projectId];

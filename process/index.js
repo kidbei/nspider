@@ -2,18 +2,15 @@ const logger = require('log4js').getLogger('processor');
 const Promise = require('bluebird');
 const Mq = require('../mq');
 const utils = require('../utils');
-const vm = require('vm');
 const cheerio = require('cheerio');
 const md5Hex = require('md5-hex');
-const ScriptRunner = require('../webui/ScriptRunner');
+const ScriptRunner = require('./ScriptRunner');
 
 module.exports = function(config) {
 
   this._project_cache = {};
   this.ProjectModel = null;
   this.TaskModel = null;
-  this.ResultModel = null;
-  this.requestIdGenerator = 0;
   this.stopedProjects = new Set();
   this.scriptRunner = null;
 
@@ -53,31 +50,6 @@ module.exports = function(config) {
     try{
       logger.info('process data,method:%s,project:%d, taskId:%s', result.method, result.projectId, taskId);
 
-      // if (result.method != 'start') {
-      //   if (this.stopedProjects.has(result.projectId)) {
-      //     logger.info('project %s is stoped, will not process message', result.projectId);
-      //     return;
-      //   }
-      //   const task_temp = await this.TaskModel.findByPk(taskId);
-      //   if (task_temp) {
-      //     if (task_temp.expireTime === 0 || task_temp.createdAt.getTime() + task_temp.expireTime > Date.now()) {
-      //       logger.info('task is already exist, url:%s, taskId:%s', result.url, taskId);
-      //       return;
-      //     } else {
-      //       logger.info('task is out of expire time, url:%s, taskId:%s', result.url, taskId);
-      //       this.TaskModel.destroy({where: {id: taskId}});
-      //       this.ResultModel.destroy({where: {taskId: taskId}});
-      //     }
-      //   } else {
-      //     if (this.stopedProjects.has(result.projectId)) {
-      //       this.stopedProjects.delete(result.projectId);
-      //     }
-      //     await this.TaskModel.create({id: taskId, projectId: result.projectId, url: result.url, 
-      //       expireTime: result.expireTime || 0,
-      //       status: utils.constant.STATUS.TASK_RUNNING, context: JSON.stringify(result), track: ''});
-      //   }
-      // }
-
       let project = this._project_cache[result.projectId];
       if (!project) {
         project = await this.ProjectModel.findByPk(result.projectId);
@@ -116,11 +88,6 @@ module.exports = function(config) {
 
   this._html_2_document = (html) => {
     return cheerio.load(html);
-  }
-
-  this.select_fetcher_client = () => {
-    const idx = Math.floor(Math.random() * this._fetcher_clients.length);
-    return this._fetcher_clients[idx];
   }
 
 

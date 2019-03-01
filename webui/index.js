@@ -5,7 +5,7 @@ const path = require('path');
 const uuidv4 = require('uuid/v4');
 const serveStatic = require('serve-static')
 const utils = require('../utils');
-const ScriptRunner = require('./ScriptRunner');
+const ScriptRunner = require('../process/ScriptRunner');
 const fastify = require('fastify')({
   logger: true
 });
