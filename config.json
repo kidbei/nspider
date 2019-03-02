@@ -58,5 +58,6 @@
   "scheduler": {
     "rpc_host": "127.0.0.1",
     "rpc_port": 9981
-  }
+  },
+  "devModel": true
 }

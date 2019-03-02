@@ -9,6 +9,7 @@ module.exports = {
     STATUS: {
       PROJECT_DEV: 'dev',
       PROJECT_START: 'start',
+      PROJECT_STOP: 'stop',
       TASK_RUNNING: 'running',
       TASK_ERROR: 'error',
       TASK_DONE: 'done'

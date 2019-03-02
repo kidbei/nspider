@@ -72,12 +72,14 @@ module.exports = function(config) {
 
         const run_result = await this.scriptRunner.runProd(project.context, result.method, result.url, result);
         if (run_result['_result'] === true) {
+          run_result.projectId = result.projectId;
+          run_result.taskId = taskId;
           await project.context['on_result'](run_result);
         }
         await this.TaskModel.update({status: utils.constant.STATUS.TASK_DONE},{where: {id: taskId}});
       }
     } catch(error){
-      await this.TaskModel.update({status: utils.constant.STATUS.TASK_ERROR, stack: error + ''},{where: {id: taskId}});
+      await this.TaskModel.update({status: utils.constant.STATUS.TASK_ERROR, stack: error.message},{where: {id: taskId}});
       logger.error('process error, data:%s', JSON.stringify(result), error);
     }
   }

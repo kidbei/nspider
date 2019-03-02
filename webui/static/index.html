@@ -35,7 +35,6 @@
             </div>
             <div class="col-6" style="text-align: right;">
                 <button class="btn btn-success" @click="show_create">新建</button>
-                <button class="btn btn-success">新建</button>
             </div>
             <div class="col-12">
                 <table id="project-table" width="100%" style="text-align:center;" border="1" cellspacing="0">
@@ -66,6 +65,8 @@
                             <td>{{project.createdAt}}</td>
                             <td>
                                 <a :href="'/static/dev.html?projectId=' + project.id">编辑</a>
+                                <a v-if="project.status === 'dev'" @click="startProject(project)" href="javascript:;">开始</a>
+                                <a v-else-if="project.status === 'start'" @click="stopProject(project)" href="javascript:;">停止</a>
                             </td>
                         </tr>
                     </tbody>
@@ -182,6 +183,24 @@
                                 if (callback) {
                                     callback();
                                 }
+                            }
+                        })
+                    },
+                    startProject: function (project) {
+                        nspider.setProjectStatus(project.id, 'start', function (error, result) {
+                            if (error) {
+                                alert('start failed:' + error.message);
+                            } else {
+                                project.status = 'running';
+                            }
+                        })
+                    },
+                    stopProject: function (project) {
+                        nspider.setProjectStatus(project.id, 'stop', function (error, result) {
+                            if (error) {
+                                alert('start failed:' + error.message);
+                            } else {
+                                project.status = 'running';
                             }
                         })
                     }

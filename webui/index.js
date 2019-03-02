@@ -6,6 +6,7 @@ const uuidv4 = require('uuid/v4');
 const serveStatic = require('serve-static')
 const utils = require('../utils');
 const ScriptRunner = require('../process/ScriptRunner');
+const Mq = require('../mq');
 const fastify = require('fastify')({
   logger: true
 });
@@ -187,6 +188,28 @@ module.exports = function(config) {
 
   }
 
+
+  fastify.put('/api/projects/:projectId/properties/status', async (request, reply) => {
+    const projectId = request.params.projectId;
+    const status = request.body.status;
+    const project = await this.ProjectModel.findByPk(projectId);
+    if (!project) {
+      reply.send({ret: false, code: -404, msg: 'project not found:' + projectId});
+      return
+    }
+    if (project.status === status) {
+      reply.send({ret: false, code: -415, msg: 'project is already in status:' + status});
+      return
+    }
+    if (status === utils.constant.STATUS.PROJECT_START) {
+      Mq.getMq().produce(utils.constant.TOPIC_PROCESS,
+          {projectId: projectId, url: project.startUrl, method: 'start'});
+      await this.ProjectModel.update({status: utils.constant.STATUS.PROJECT_START}, {where: {id: projectId}});
+      reply.send({ret: true, code: 0});
+    } else {
+      reply.send({ret: false, code: -501, msg: '暂时不支持修改project状态'});
+    }
+  })
 
 
   this._init_account = (webui_config) => {

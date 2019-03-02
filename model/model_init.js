@@ -11,6 +11,7 @@ module.exports = {
     this._init_model_sequelize('result', config.result.db);
     this._init_model_sequelize('module', config.system.db);
     this._init_model_sequelize('auth_record', config.system.db);
+    this._init_model_sequelize('lock_entity', config.system.db);
   },
 
   _get_db_key: function(db_config) {
