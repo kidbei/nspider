@@ -72,6 +72,7 @@ module.exports = function (config) {
                 };
                 await this.TaskModel.create(task);
 
+<<<<<<< HEAD
                 const run_result = await this.scriptRunner.runProd(project.context, result.method, result.url, result);
                 if (run_result['_result'] === true) {
                     await project.context['on_result'](run_result);
@@ -85,6 +86,19 @@ module.exports = function (config) {
             }, {where: {id: taskId}});
             logger.error('process error, data:%s', JSON.stringify(result), error);
         }
+=======
+        const run_result = await this.scriptRunner.runProd(project.context, result.method, result.url, result);
+        if (run_result['_result'] === true) {
+          run_result.projectId = result.projectId;
+          run_result.taskId = taskId;
+          await project.context['on_result'](run_result);
+        }
+        await this.TaskModel.update({status: utils.constant.STATUS.TASK_DONE},{where: {id: taskId}});
+      }
+    } catch(error){
+      await this.TaskModel.update({status: utils.constant.STATUS.TASK_ERROR, stack: error.message},{where: {id: taskId}});
+      logger.error('process error, data:%s', JSON.stringify(result), error);
+>>>>>>> 4b777a3e8bd16f37ee0fab8b48e385a17cfe8d91
     }
 
     this._init_and_cache_context = async (project) => {
