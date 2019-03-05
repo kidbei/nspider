@@ -5,24 +5,15 @@ const model_db_instance = {};
 const db_key_instance = {};
 
 module.exports = {
-<<<<<<< HEAD
+
     init: function (config) {
         this._init_model_sequelize('task', config.task.db);
         this._init_model_sequelize('project', config.project.db);
         this._init_model_sequelize('result', config.result.db);
         this._init_model_sequelize('module', config.system.db);
         this._init_model_sequelize('auth_record', config.system.db);
+        this._init_model_sequelize('lock_entity', config.system.db);
     },
-=======
-  init: function(config) {
-    this._init_model_sequelize('task', config.task.db);
-    this._init_model_sequelize('project', config.project.db);
-    this._init_model_sequelize('result', config.result.db);
-    this._init_model_sequelize('module', config.system.db);
-    this._init_model_sequelize('auth_record', config.system.db);
-    this._init_model_sequelize('lock_entity', config.system.db);
-  },
->>>>>>> 4b777a3e8bd16f37ee0fab8b48e385a17cfe8d91
 
     _get_db_key: function (db_config) {
         if (db_config.type === 'sqlite') {
