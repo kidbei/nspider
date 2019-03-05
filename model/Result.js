@@ -4,8 +4,8 @@ const Sequelize = require('sequelize');
 
 
 module.exports = task = sequelize.define('result', {
-  id: {type: Sequelize.BIGINT, primaryKey: true, autoIncrement: true},
-  projectId: {type: Sequelize.BIGINT, allowNull: false},
-  taskId: {type: Sequelize.BIGINT, allowNull: false},
-  result: {type: Sequelize.TEXT, allowNull: false, defaultValue: '{}'}
+    id: {type: Sequelize.BIGINT, primaryKey: true, autoIncrement: true},
+    projectId: {type: Sequelize.BIGINT, allowNull: false},
+    taskId: {type: Sequelize.BIGINT, allowNull: false},
+    result: {type: Sequelize.TEXT, allowNull: false, defaultValue: '{}'}
 })

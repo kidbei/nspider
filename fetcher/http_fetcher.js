@@ -5,53 +5,53 @@ const Promise = require('bluebird');
 const logger = require('log4js').getLogger('fetcher');
 
 
-
 const default_http_options = {
-  headers: {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
-  }
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36'
+    }
 };
 
-module.exports = function() {
+module.exports = function () {
 
-  /**
-   * options: {}  include headers
-   */
-  this.fetch = (url, options) => {
-    if (logger.isDebugEnabled()) {
-      logger.debug('fetch url:%s', url);
-    }
-    const headers = merge(default_http_options.headers, options.headers);
-    return new Promise((resolve, reject) => {
-      const request_options = {url: url, headers: headers, encoding: null};
-      if (options.proxy) {
-        request_options.proxy = options.proxy;
-      }
-      request(request_options, (error, response, body) => {
-        if (error) {
-          reject(error);
-        } else {                                                                                                         
-          if (response.statusCode >= 400) {
-            logger.error('fetc url faild,url:%s,reason:http server return code:%d', url, response.statusCode);
-            reject(new Error('http code error:' + response.statusCode));
-          } else {
-            if (logger.isDebugEnabled()) {
-              logger.debug('fetch success,url:%s', url);
-            }
-            const nspider_response = {headers: response.headers, statusCode: response.statusCode, content: body.toString('base64')};
-            resolve(nspider_response);
-          }
+    /**
+     * options: {}  include headers
+     */
+    this.fetch = (url, options) => {
+        if (logger.isDebugEnabled()) {
+            logger.debug('fetch url:%s', url);
         }
-      })
-    })
-  }
+        const headers = merge(default_http_options.headers, options.headers);
+        return new Promise((resolve, reject) => {
+            const request_options = {url: url, headers: headers, encoding: null};
+            if (options.proxy) {
+                request_options.proxy = options.proxy;
+            }
+            request(request_options, (error, response, body) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    if (response.statusCode >= 400) {
+                        logger.error('fetc url faild,url:%s,reason:http server return code:%d', url, response.statusCode);
+                        reject(new Error('http code error:' + response.statusCode));
+                    } else {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug('fetch success,url:%s', url);
+                        }
+                        const nspider_response = {
+                            headers: response.headers,
+                            statusCode: response.statusCode,
+                            content: body.toString('base64')
+                        };
+                        resolve(nspider_response);
+                    }
+                }
+            })
+        })
+    }
 
-  this.destroy = () => {
+    this.destroy = () => {
 
-  }
-
-
-  
+    }
 
 
 }

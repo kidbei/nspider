@@ -4,61 +4,61 @@ const Mq = require('../mq');
 const utils = require('../utils');
 const RateLimiter = require('limiter').RateLimiter;
 
-module.exports = function(config) {
+module.exports = function (config) {
 
-  this._project_limiter = {};
-  this._error_task_timer;
+    this._project_limiter = {};
+    this._error_task_timer;
 
-  this.start = async () => {
-    try{
-      await Mq.getMq().register(utils.constant.TOPIC_SCHEDULE, this.onSchedule, false);
-      return Promise.resolve();
-    } catch(error){
-      return Promise.reject(error);
+    this.start = async () => {
+        try {
+            await Mq.getMq().register(utils.constant.TOPIC_SCHEDULE, this.onSchedule, false);
+            return Promise.resolve();
+        } catch (error) {
+            return Promise.reject(error);
+        }
     }
-  }
 
-  this.onSchedule = (data) => {
-    try{
-      if (!data.projectId) {
-        logger.error('invalid schedule data: no projectId,data:%s', JSON.stringify(data));
-      }
-      if (!data.method) {
-        logger.error('invalid schedule data: no method, data:%s', JSON.stringify(data));
-      }
-      const limiter = this._get_limiter(data.projectId, data.rateNumber, data.rateUnit);
-      limiter.removeTokens(1, () => {
-        Mq.getMq().produce(utils.constant.TOPIC_PROCESS, data);
-      });
-    } catch(error){
-      logger.error('on schedule error,data:%s', JSON.stringify(data), error)
+    this.onSchedule = (data) => {
+        try {
+            if (!data.projectId) {
+                logger.error('invalid schedule data: no projectId,data:%s', JSON.stringify(data));
+            }
+            if (!data.method) {
+                logger.error('invalid schedule data: no method, data:%s', JSON.stringify(data));
+            }
+            const limiter = this._get_limiter(data.projectId, data.rateNumber, data.rateUnit);
+            limiter.removeTokens(1, () => {
+                Mq.getMq().produce(utils.constant.TOPIC_PROCESS, data);
+            });
+        } catch (error) {
+            logger.error('on schedule error,data:%s', JSON.stringify(data), error)
+        }
     }
-  }
 
-  this._get_limiter = (projectId, limiterNum, limiterUnit) => {
-    let limiter = this._project_limiter[projectId];
-    if (limiter) {
-      return limiter;
+    this._get_limiter = (projectId, limiterNum, limiterUnit) => {
+        let limiter = this._project_limiter[projectId];
+        if (limiter) {
+            return limiter;
+        }
+        limiter = new RateLimiter(limiterNum, limiterUnit);
+        this._project_limiter[projectId] = limiter;
+        return limiter;
     }
-    limiter = new RateLimiter(limiterNum, limiterUnit);
-    this._project_limiter[projectId] = limiter;
-    return limiter;
-  }
 
 
-  this.startProject = async (projectId, url) => {
-    try{
-      await Mq.getMq().produce(utils.constant.TOPIC_PROCESS,{projectId: projectId, url: url, method: 'start'});
-      return Promise.resolve();
-    } catch(error){
-      return Promise.reject(error);
+    this.startProject = async (projectId, url) => {
+        try {
+            await Mq.getMq().produce(utils.constant.TOPIC_PROCESS, {projectId: projectId, url: url, method: 'start'});
+            return Promise.resolve();
+        } catch (error) {
+            return Promise.reject(error);
+        }
     }
-  }
 
 
-  this.destroy = async() => {
-    return Promise.resolve();
-  }
+    this.destroy = async () => {
+        return Promise.resolve();
+    }
 
 
 }
