@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/nspider.iml" filepath="$PROJECT_DIR$/nspider.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/nspider.iml" filepath="$PROJECT_DIR$/.idea/nspider.iml" />
     </modules>
   </component>
 </project>

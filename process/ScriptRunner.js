@@ -17,14 +17,10 @@ module.exports = function (fetcher_services, logger) {
     this.ResultModel = null;
 
     this.default_on_result = async (result) => {
-<<<<<<< HEAD
-        logger.info('on result:%s', JSON.stringify(result));
-=======
         const result_str = JSON.stringify(result);
         logger.info('on result:%s', result_str);
         const db_result = {projectId: result.projectId, taskId: result.taskId, result: result_str};
         await this.ResultModel.create(db_result);
->>>>>>> 4b777a3e8bd16f37ee0fab8b48e385a17cfe8d91
     }
 
     this.getDebugContext = async (scriptText) => {
@@ -126,13 +122,9 @@ module.exports = function (fetcher_services, logger) {
         } else {
             const response = await this._fetch(url, params.fetch_type, params);
             if (params.charset) {
-<<<<<<< HEAD
-                response.content = iconv.decode(Buffer.from(response.content), params.charset);
-=======
                 response.content = iconv.decode(Buffer.from(response.content, 'base64'), params.charset);
             } else {
                 response.content = Buffer.from(response.content, 'base64').toString();
->>>>>>> 4b777a3e8bd16f37ee0fab8b48e385a17cfe8d91
             }
             response.doc = (exp) => {
                 return this._html_2_document(response.content)(exp)
@@ -191,10 +183,6 @@ module.exports = function (fetcher_services, logger) {
         const idx = Math.floor(Math.random() * this._fetcher_clients.length);
         return this._fetcher_clients[idx];
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> 4b777a3e8bd16f37ee0fab8b48e385a17cfe8d91
 
     (() => {
         this.ResultModel = require('../model/Result');

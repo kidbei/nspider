@@ -71,10 +71,10 @@ module.exports = function (config) {
                     status: utils.constant.STATUS.TASK_RUNNING, context: JSON.stringify(result), track: ''
                 };
                 await this.TaskModel.create(task);
-
-<<<<<<< HEAD
                 const run_result = await this.scriptRunner.runProd(project.context, result.method, result.url, result);
                 if (run_result['_result'] === true) {
+                    run_result.projectId = result.projectId;
+                    run_result.taskId = taskId;
                     await project.context['on_result'](run_result);
                 }
                 await this.TaskModel.update({status: utils.constant.STATUS.TASK_DONE}, {where: {id: taskId}});
@@ -82,41 +82,28 @@ module.exports = function (config) {
         } catch (error) {
             await this.TaskModel.update({
                 status: utils.constant.STATUS.TASK_ERROR,
-                stack: error + ''
+                stack: error.message
             }, {where: {id: taskId}});
             logger.error('process error, data:%s', JSON.stringify(result), error);
         }
-=======
-        const run_result = await this.scriptRunner.runProd(project.context, result.method, result.url, result);
-        if (run_result['_result'] === true) {
-          run_result.projectId = result.projectId;
-          run_result.taskId = taskId;
-          await project.context['on_result'](run_result);
+
+        this._init_and_cache_context = async (project) => {
+            project.context = await this.scriptRunner.getProdContext(project.id, project.script, project.rateNumber, project.rateUnit);
         }
-        await this.TaskModel.update({status: utils.constant.STATUS.TASK_DONE},{where: {id: taskId}});
-      }
-    } catch(error){
-      await this.TaskModel.update({status: utils.constant.STATUS.TASK_ERROR, stack: error.message},{where: {id: taskId}});
-      logger.error('process error, data:%s', JSON.stringify(result), error);
->>>>>>> 4b777a3e8bd16f37ee0fab8b48e385a17cfe8d91
+
+        this._html_2_document = (html) => {
+            return cheerio.load(html);
+        }
+
+
+        this.destroy = async () => {
+            logger.info('destroy processor');
+            this._project_cache = null;
+            this._project_limiter = null;
+            this._project_task_queue = null;
+            return Promise.resolve();
+        }
+
+
     }
-
-    this._init_and_cache_context = async (project) => {
-        project.context = await this.scriptRunner.getProdContext(project.id, project.script, project.rateNumber, project.rateUnit);
-    }
-
-    this._html_2_document = (html) => {
-        return cheerio.load(html);
-    }
-
-
-    this.destroy = async () => {
-        logger.info('destroy processor');
-        this._project_cache = null;
-        this._project_limiter = null;
-        this._project_task_queue = null;
-        return Promise.resolve();
-    }
-
-
 }
